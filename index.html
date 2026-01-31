@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Coach">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>Coach de Correction</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            overflow-x: hidden;
+            touch-action: manipulation;
+        }
+
+        html { height: -webkit-fill-available; }
+
+        /* === SETUP SCREEN === */
+        .setup-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 85vh;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+            width: 100%;
+        }
+
+        .setup-screen.hidden { display: none; }
+
+        .setup-title {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #f39c12, #e74c3c, #9b59b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .setup-subtitle {
+            font-size: 1rem;
+            color: #888;
+            margin-bottom: 30px;
+        }
+
+        .setup-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 24px;
+            padding: 30px;
+            border: 2px solid rgba(255,255,255,0.1);
+            max-width: 350px;
+            width: 100%;
+        }
+
+        .setup-label {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+
+        .setup-input {
+            width: 100%;
+            padding: 18px;
+            font-size: 2rem;
+            text-align: center;
+            border: 3px solid #3498db;
+            border-radius: 16px;
+            background: rgba(52, 152, 219, 0.1);
+            color: white;
+            margin-bottom: 25px;
+        }
+
+        .setup-input:focus {
+            outline: none;
+            border-color: #9b59b6;
+        }
+
+        .start-btn {
+            width: 100%;
+            padding: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            cursor: pointer;
+            min-height: 60px;
+        }
+
+        .start-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* === MAIN SCREEN === */
+        .main-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .main-screen.active { display: flex; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* === HEADER === */
+        .header {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .motivation-quote {
+            font-size: 1rem;
+            color: #f39c12;
+            font-style: italic;
+            min-height: 25px;
+            padding: 0 10px;
+        }
+
+        /* === PROGRESS === */
+        .progress-section {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .progress-text {
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .progress-count {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2ecc71;
+        }
+
+        .progress-bar-container {
+            height: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #27ae60, #2ecc71);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        /* === SPRINT === */
+        .sprint-section {
+            background: linear-gradient(135deg, rgba(155, 89, 182, 0.2), rgba(142, 68, 173, 0.2));
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 15px;
+            width: 100%;
+            text-align: center;
+            border: 2px solid #9b59b6;
+        }
+
+        .sprint-title {
+            font-size: 0.8rem;
+            color: #9b59b6;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        .sprint-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .sprint-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: 3px solid #9b59b6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: #888;
+            transition: all 0.3s;
+        }
+
+        .sprint-dot.done {
+            background: #9b59b6;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .sprint-message {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* === COPY CHRONO === */
+        .copy-chrono {
+            background: rgba(52, 152, 219, 0.2);
+            border: 2px solid #3498db;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .copy-chrono-label {
+            font-size: 0.75rem;
+            color: #3498db;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .copy-chrono-time {
+            font-size: 2.5rem;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            color: #3498db;
+        }
+
+        /* === DONE BUTTON === */
+        .done-btn {
+            width: 100%;
+            padding: 22px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            cursor: pointer;
+            margin-bottom: 15px;
+            min-height: 70px;
+        }
+
+        .done-btn:active {
+            transform: scale(0.98);
+        }
+
+        .done-btn::before {
+            content: '📝 ';
+        }
+
+        /* === STATS === */
+        .stats-section {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .stat-label {
+            font-size: 0.65rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        /* === RESET === */
+        .reset-btn {
+            padding: 10px 20px;
+            font-size: 0.85rem;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            background: transparent;
+            color: #888;
+            cursor: pointer;
+            min-height: 44px;
+        }
+
+        /* === SPRINT RECAP MODAL === */
+        .sprint-recap-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .sprint-recap-modal.show { display: flex; }
+
+        .sprint-recap-content {
+            background: #16213e;
+            border-radius: 20px;
+            padding: 25px;
+            width: 100%;
+            max-width: 380px;
+            border: 2px solid #9b59b6;
+        }
+
+        .sprint-recap-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .sprint-recap-emoji {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .sprint-recap-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #9b59b6;
+        }
+
+        .sprint-recap-times {
+            margin-bottom: 15px;
+        }
+
+        .sprint-recap-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.95rem;
+        }
+
+        .sprint-recap-row:last-child {
+            border-bottom: none;
+        }
+
+        .sprint-recap-row.total {
+            font-weight: bold;
+            color: #2ecc71;
+            font-size: 1.1rem;
+            margin-top: 5px;
+            padding-top: 10px;
+            border-top: 2px solid rgba(255,255,255,0.2);
+        }
+
+        /* Sprint comparison */
+        .sprint-comparison {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .sprint-comparison-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .comparison-indicator {
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+
+        .comparison-indicator.faster {
+            background: rgba(46, 204, 113, 0.3);
+            color: #2ecc71;
+        }
+
+        .comparison-indicator.slower {
+            background: rgba(231, 76, 60, 0.3);
+            color: #e74c3c;
+        }
+
+        .comparison-indicator.same {
+            background: rgba(241, 196, 15, 0.3);
+            color: #f1c40f;
+        }
+
+        .sprint-recap-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .sprint-recap-btn {
+            flex: 1;
+            padding: 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            min-height: 55px;
+        }
+
+        .sprint-recap-btn.continue {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        .sprint-recap-btn.pause {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        /* === PAUSE MODAL === */
+        .pause-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            padding: 20px;
+        }
+
+        .pause-modal.show { display: flex; }
+
+        .pause-content {
+            text-align: center;
+        }
+
+        .pause-emoji {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .pause-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+
+        .pause-timer {
+            font-size: 4rem;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            color: #2ecc71;
+            margin-bottom: 20px;
+        }
+
+        .pause-skip-btn {
+            padding: 15px 40px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* === FINISH SCREEN === */
+        .finish-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 85vh;
+            text-align: center;
+            animation: fadeIn 0.5s ease;
+            padding: 20px;
+        }
+
+        .finish-screen.active { display: flex; }
+
+        .finish-emoji {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .finish-title {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #f1c40f, #e67e22, #e74c3c);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .finish-stats {
+            font-size: 1rem;
+            color: #888;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .finish-sprints {
+            width: 100%;
+            max-width: 350px;
+            margin-bottom: 25px;
+        }
+
+        .finish-sprint-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .finish-sprint-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            margin: 0 10px;
+            overflow: hidden;
+        }
+
+        .finish-sprint-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s;
+        }
+
+        .finish-btn {
+            padding: 18px 40px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            cursor: pointer;
+        }
+
+        /* === CONFETTI === */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2000;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            animation: confetti-fall 3s linear forwards;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Prevent text selection */
+        * { -webkit-user-select: none; user-select: none; }
+        input { -webkit-user-select: text; user-select: text; }
+
+        /* Safe area */
+        @supports (padding: max(0px)) {
+            body {
+                padding-left: max(15px, env(safe-area-inset-left));
+                padding-right: max(15px, env(safe-area-inset-right));
+                padding-bottom: max(15px, env(safe-area-inset-bottom));
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- SETUP SCREEN -->
+    <div class="setup-screen" id="setupScreen">
+        <h1 class="setup-title">🎯 Coach de Correction</h1>
+        <p class="setup-subtitle">Transforme la corvée en victoire</p>
+
+        <div class="setup-card">
+            <p class="setup-label">Combien de copies à corriger ?</p>
+            <input type="number" class="setup-input" id="totalCopies" value="45" min="1" max="200" inputmode="numeric">
+            <button class="start-btn" onclick="startSession()">C'est parti ! 🚀</button>
+        </div>
+    </div>
+
+    <!-- MAIN SCREEN -->
+    <div class="main-screen" id="mainScreen">
+        <div class="header">
+            <p class="motivation-quote" id="motivationQuote">Une copie à la fois. Tu avances.</p>
+        </div>
+
+        <!-- PROGRESS -->
+        <div class="progress-section">
+            <div class="progress-header">
+                <span class="progress-text">Progression</span>
+                <span class="progress-count"><span id="doneCount">0</span> / <span id="totalCount">45</span></span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- SPRINT -->
+        <div class="sprint-section">
+            <div class="sprint-title">🏃 Sprint <span id="currentSprintNum">1</span></div>
+            <div class="sprint-dots" id="sprintDots">
+                <div class="sprint-dot" id="dot0">-</div>
+                <div class="sprint-dot" id="dot1">-</div>
+                <div class="sprint-dot" id="dot2">-</div>
+                <div class="sprint-dot" id="dot3">-</div>
+                <div class="sprint-dot" id="dot4">-</div>
+            </div>
+            <p class="sprint-message" id="sprintMessage">5 copies pour terminer ce sprint</p>
+        </div>
+
+        <!-- COPY CHRONO -->
+        <div class="copy-chrono">
+            <div class="copy-chrono-label">⏱ Temps copie en cours</div>
+            <div class="copy-chrono-time" id="copyChronoTime">0:00</div>
+        </div>
+
+        <!-- DONE BUTTON -->
+        <button class="done-btn" onclick="markDone()">Copie terminée !</button>
+
+        <!-- STATS -->
+        <div class="stats-section">
+            <div class="stat-card">
+                <div class="stat-value" id="sprintsCompleted">0</div>
+                <div class="stat-label">Sprints</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgTime">-</div>
+                <div class="stat-label">Moy/copie</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="remainingCount">45</div>
+                <div class="stat-label">Restantes</div>
+            </div>
+        </div>
+
+        <button class="reset-btn" onclick="confirmReset()">🔄 Nouvelle session</button>
+    </div>
+
+    <!-- FINISH SCREEN -->
+    <div class="finish-screen" id="finishScreen">
+        <div class="finish-emoji">🏆</div>
+        <h1 class="finish-title">TERMINÉ !</h1>
+        <p class="finish-stats" id="finishStats"></p>
+        <div class="finish-sprints" id="finishSprints"></div>
+        <button class="finish-btn" onclick="resetSession()">🎯 Nouvelle session</button>
+    </div>
+
+    <!-- SPRINT RECAP MODAL -->
+    <div class="sprint-recap-modal" id="sprintRecapModal">
+        <div class="sprint-recap-content">
+            <div class="sprint-recap-header">
+                <div class="sprint-recap-emoji">🎉</div>
+                <div class="sprint-recap-title" id="sprintRecapTitle">Sprint 1 terminé !</div>
+            </div>
+
+            <div class="sprint-recap-times" id="sprintRecapTimes">
+                <!-- Filled by JS -->
+            </div>
+
+            <div class="sprint-comparison" id="sprintComparison">
+                <!-- Filled by JS -->
+            </div>
+
+            <div class="sprint-recap-buttons">
+                <button class="sprint-recap-btn pause" onclick="startPause()">☕ Pause 2min</button>
+                <button class="sprint-recap-btn continue" onclick="continueAfterSprint()">Continuer ▶</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAUSE MODAL -->
+    <div class="pause-modal" id="pauseModal">
+        <div class="pause-content">
+            <div class="pause-emoji">☕</div>
+            <div class="pause-title">Pause méritée</div>
+            <div class="pause-timer" id="pauseTimer">2:00</div>
+            <button class="pause-skip-btn" onclick="skipPause()">Reprendre maintenant</button>
+        </div>
+    </div>
+
+    <!-- CONFETTI CONTAINER -->
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <!-- NO SLEEP VIDEO (invisible) -->
+    <video id="noSleepVideo" playsinline muted loop style="position:absolute;left:-9999px;width:1px;height:1px;">
+        <source src="data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAs1tZGF0AAACrgYF//+q3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE0OCByMjYwMSBhMGNkN2QzIC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxNSAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MzoweDExMyBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MSBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiB0aHJlYWRzPTEgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0zIGJfcHlyYW1pZD0yIGJfYWRhcHQ9MSBiX2JpYXM9MCBkaXJlY3Q9MSB3ZWlnaHRiPTEgb3Blbl9nb3A9MCB3ZWlnaHRwPTIga2V5aW50PTI1MCBrZXlpbnRfbWluPTI1IHNjZW5lY3V0PTQwIGludHJhX3JlZnJlc2g9MCByY19sb29rYWhlYWQ9NDAgcmM9Y3JmIG1idHJlZT0xIGNyZj0yMy4wIHFjb21wPTAuNjAgcXBtaW49MCBxcG1heD02OSBxcHN0ZXA9NCBpcF9yYXRpbz0xLjQwIGFxPTE6MS4wMACAAAAAD2WIhAA3//728P4FNjuZQQAAAu5tb292AAAAbG12aGQAAAAAAAAAAAAAAAAAAAPoAAAAZAABAAABAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAACGHRyYWsAAABcdGtoZAAAAAMAAAAAAAAAAAAAAAEAAAAAAAAAZAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAgAAAAIAAAAAACRlZHRzAAAAHGVsc3QAAAAAAAAAAQAAAGQAAAAAAAEAAAAAAZBtZGlhAAAAIG1kaGQAAAAAAAAAAAAAAAAAACgAAAAEAFXEAAAAAAAtaGRscgAAAAAAAAAAdmlkZQAAAAAAAAAAAAAAAFZpZGVvSGFuZGxlcgAAAAE7bWluZgAAABR2bWhkAAAAAQAAAAAAAAAAAAAAJGRpbmYAAAAcZHJlZgAAAAAAAAABAAAADHVybCAAAAABAAAA+3N0YmwAAACXc3RzZAAAAAAAAAABAAAAh2F2YzEAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAACAAIABEgAAABIAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY//8AAAAxYXZjQwFkAAr/4QAYZ2QACqzZX4iIhAAAAwAEAAADAFA8SJZYAQAGaOvjyyLAAAAAGHN0dHMAAAAAAAAAAQAAAAEAAAQAAAAAHHN0c2MAAAAAAAAAAQAAAAEAAAABAAAAAQAAABRzdHN6AAAAAAAAAsUAAAABAAAAFHN0Y28AAAAAAAAAAQAAADAAAABidWR0YQAAAFptZXRhAAAAAAAAACFoZGxyAAAAAAAAAABtZGlyYXBwbAAAAAAAAAAAAAAAAC1pbHN0AAAAJal0b28AAAAdZGF0YQAAAAEAAAAATGF2ZjU2LjQwLjEwMQ==" type="video/mp4">
+    </video>
+
+    <script>
+        // === STATE ===
+        let state = {
+            totalCopies: 45,
+            doneCopies: 0,
+            sprintsCompleted: 0,
+            currentSprintProgress: 0,
+            startTime: null,
+            copyStartTime: null,
+            sprintTimes: [], // Array of arrays: [[copy1, copy2, copy3, copy4, copy5], [...], ...]
+            currentSprintTimes: [],
+            allCopyTimes: [],
+            sessionActive: false
+        };
+
+        const SPRINT_SIZE = 5;
+        const PAUSE_SECONDS = 120; // 2 minutes
+
+        let copyChronoInterval = null;
+        let pauseInterval = null;
+        let pauseSecondsLeft = PAUSE_SECONDS;
+
+        // === MOTIVATION QUOTES ===
+        const quotes = [
+            "Une copie à la fois. Tu avances.",
+            "Chaque copie terminée est une victoire.",
+            "Tu es plus fort que la procrastination.",
+            "Concentre-toi sur cette copie, rien d'autre.",
+            "Tu vas y arriver. Continue.",
+            "Petit à petit, l'oiseau fait son nid.",
+            "La discipline bat le talent.",
+            "Tu es en train de le faire !",
+            "Pas parfait, terminé. C'est ce qui compte.",
+            "La fin se rapproche à chaque copie.",
+            "Courage ! Tu assures.",
+            "Une de moins, une victoire de plus.",
+            "Reste focus. Tu es sur la bonne voie.",
+            "Chaque effort compte.",
+            "Finis ce que tu as commencé."
+        ];
+
+        // === NO SLEEP (keep screen awake) ===
+        function enableNoSleep() {
+            const video = document.getElementById('noSleepVideo');
+            video.play().catch(() => {});
+        }
+
+        function disableNoSleep() {
+            const video = document.getElementById('noSleepVideo');
+            video.pause();
+        }
+
+        // === COPY CHRONO ===
+        function startCopyChrono() {
+            state.copyStartTime = Date.now();
+            updateCopyChronoDisplay();
+            copyChronoInterval = setInterval(updateCopyChronoDisplay, 1000);
+        }
+
+        function stopCopyChrono() {
+            clearInterval(copyChronoInterval);
+            if (state.copyStartTime) {
+                return Math.floor((Date.now() - state.copyStartTime) / 1000);
+            }
+            return 0;
+        }
+
+        function updateCopyChronoDisplay() {
+            if (!state.copyStartTime) return;
+            const elapsed = Math.floor((Date.now() - state.copyStartTime) / 1000);
+            document.getElementById('copyChronoTime').textContent = formatTime(elapsed);
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // === SESSION MANAGEMENT ===
+        function startSession() {
+            const total = parseInt(document.getElementById('totalCopies').value) || 45;
+            state = {
+                totalCopies: total,
+                doneCopies: 0,
+                sprintsCompleted: 0,
+                currentSprintProgress: 0,
+                startTime: new Date(),
+                copyStartTime: null,
+                sprintTimes: [],
+                currentSprintTimes: [],
+                allCopyTimes: [],
+                sessionActive: true
+            };
+
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('setupScreen').classList.add('hidden');
+            document.getElementById('mainScreen').classList.add('active');
+
+            updateProgress();
+            updateSprintDots();
+            startCopyChrono();
+            enableNoSleep();
+        }
+
+        function markDone() {
+            if (state.doneCopies >= state.totalCopies) return;
+
+            // Record time for this copy
+            const copyTime = stopCopyChrono();
+            state.currentSprintTimes.push(copyTime);
+            state.allCopyTimes.push(copyTime);
+
+            state.doneCopies++;
+            state.currentSprintProgress++;
+
+            vibrate();
+            updateQuote();
+            updateProgress();
+            updateSprintDots();
+            updateAvgTime();
+
+            // Check for sprint completion
+            if (state.currentSprintProgress >= SPRINT_SIZE) {
+                completeSprint();
+            } else if (state.doneCopies >= state.totalCopies) {
+                finishSession();
+            } else {
+                // Start chrono for next copy
+                startCopyChrono();
+            }
+        }
+
+        function completeSprint() {
+            state.sprintsCompleted++;
+            state.sprintTimes.push([...state.currentSprintTimes]);
+
+            // Check if session is complete
+            if (state.doneCopies >= state.totalCopies) {
+                finishSession();
+                return;
+            }
+
+            // Show sprint recap
+            showSprintRecap();
+            spawnConfetti();
+        }
+
+        function showSprintRecap() {
+            const modal = document.getElementById('sprintRecapModal');
+            const title = document.getElementById('sprintRecapTitle');
+            const timesDiv = document.getElementById('sprintRecapTimes');
+            const compDiv = document.getElementById('sprintComparison');
+
+            title.textContent = `Sprint ${state.sprintsCompleted} terminé !`;
+
+            // Build times list
+            let timesHTML = '';
+            let total = 0;
+            state.currentSprintTimes.forEach((t, i) => {
+                timesHTML += `<div class="sprint-recap-row"><span>Copie ${i + 1}</span><span>${formatTime(t)}</span></div>`;
+                total += t;
+            });
+            const avg = Math.floor(total / state.currentSprintTimes.length);
+            timesHTML += `<div class="sprint-recap-row total"><span>Total</span><span>${formatTime(total)}</span></div>`;
+            timesHTML += `<div class="sprint-recap-row"><span>Moyenne</span><span>${formatTime(avg)}/copie</span></div>`;
+            timesDiv.innerHTML = timesHTML;
+
+            // Comparison with previous sprint
+            if (state.sprintTimes.length > 1) {
+                const prevTotal = state.sprintTimes[state.sprintTimes.length - 2].reduce((a, b) => a + b, 0);
+                const diff = total - prevTotal;
+                const diffAbs = Math.abs(diff);
+
+                let compHTML = `<div style="font-size:0.85rem;color:#888;">vs Sprint ${state.sprintsCompleted - 1}</div>`;
+                compHTML += `<div class="sprint-comparison-bar">`;
+
+                if (diff < -5) {
+                    compHTML += `<span class="comparison-indicator faster">⚡ ${formatTime(diffAbs)} plus rapide</span>`;
+                } else if (diff > 5) {
+                    compHTML += `<span class="comparison-indicator slower">🐢 ${formatTime(diffAbs)} plus lent</span>`;
+                } else {
+                    compHTML += `<span class="comparison-indicator same">≈ Même rythme</span>`;
+                }
+                compHTML += `</div>`;
+                compDiv.innerHTML = compHTML;
+                compDiv.style.display = 'block';
+            } else {
+                compDiv.style.display = 'none';
+            }
+
+            modal.classList.add('show');
+        }
+
+        function continueAfterSprint() {
+            document.getElementById('sprintRecapModal').classList.remove('show');
+            state.currentSprintProgress = 0;
+            state.currentSprintTimes = [];
+            document.getElementById('currentSprintNum').textContent = state.sprintsCompleted + 1;
+            updateSprintDots();
+            startCopyChrono();
+        }
+
+        function startPause() {
+            document.getElementById('sprintRecapModal').classList.remove('show');
+            document.getElementById('pauseModal').classList.add('show');
+
+            pauseSecondsLeft = PAUSE_SECONDS;
+            updatePauseTimer();
+
+            pauseInterval = setInterval(() => {
+                pauseSecondsLeft--;
+                updatePauseTimer();
+                if (pauseSecondsLeft <= 0) {
+                    endPause();
+                }
+            }, 1000);
+        }
+
+        function updatePauseTimer() {
+            document.getElementById('pauseTimer').textContent = formatTime(pauseSecondsLeft);
+        }
+
+        function skipPause() {
+            endPause();
+        }
+
+        function endPause() {
+            clearInterval(pauseInterval);
+            document.getElementById('pauseModal').classList.remove('show');
+            vibrate();
+            continueAfterSprint();
+        }
+
+        function finishSession() {
+            state.sessionActive = false;
+            disableNoSleep();
+
+            const duration = state.startTime ? Math.round((new Date() - state.startTime) / 60000) : 0;
+            const totalTime = state.allCopyTimes.reduce((a, b) => a + b, 0);
+            const avgTime = state.allCopyTimes.length > 0 ? Math.floor(totalTime / state.allCopyTimes.length) : 0;
+
+            let statsText = `${state.totalCopies} copies en ${duration} min\n`;
+            statsText += `Temps moyen : ${formatTime(avgTime)}/copie`;
+
+            document.getElementById('finishStats').textContent = statsText;
+
+            // Build sprint comparison bars
+            const sprintsDiv = document.getElementById('finishSprints');
+            if (state.sprintTimes.length > 0) {
+                const maxTotal = Math.max(...state.sprintTimes.map(s => s.reduce((a, b) => a + b, 0)));
+                let sprintsHTML = '';
+                state.sprintTimes.forEach((sprint, i) => {
+                    const total = sprint.reduce((a, b) => a + b, 0);
+                    const pct = Math.round((total / maxTotal) * 100);
+                    const color = i === 0 ? '#3498db' : (total < state.sprintTimes[i-1].reduce((a,b)=>a+b,0) ? '#2ecc71' : '#e74c3c');
+                    sprintsHTML += `
+                        <div class="finish-sprint-row">
+                            <span style="width:60px;">Sprint ${i + 1}</span>
+                            <div class="finish-sprint-bar">
+                                <div class="finish-sprint-bar-fill" style="width:${pct}%;background:${color};"></div>
+                            </div>
+                            <span style="width:50px;text-align:right;">${formatTime(total)}</span>
+                        </div>
+                    `;
+                });
+                sprintsDiv.innerHTML = sprintsHTML;
+            }
+
+            document.getElementById('mainScreen').classList.remove('active');
+            document.getElementById('finishScreen').classList.add('active');
+
+            spawnConfetti();
+            spawnConfetti();
+        }
+
+        function confirmReset() {
+            if (state.doneCopies > 0) {
+                if (confirm('Tu as ' + state.doneCopies + ' copies de faites. Vraiment recommencer ?')) {
+                    resetSession();
+                }
+            } else {
+                resetSession();
+            }
+        }
+
+        function resetSession() {
+            clearInterval(copyChronoInterval);
+            clearInterval(pauseInterval);
+            disableNoSleep();
+
+            document.getElementById('setupScreen').classList.remove('hidden');
+            document.getElementById('mainScreen').classList.remove('active');
+            document.getElementById('finishScreen').classList.remove('active');
+            document.getElementById('sprintRecapModal').classList.remove('show');
+            document.getElementById('pauseModal').classList.remove('show');
+            document.getElementById('copyChronoTime').textContent = '0:00';
+            document.getElementById('currentSprintNum').textContent = '1';
+        }
+
+        // === UI UPDATES ===
+        function updateProgress() {
+            const percent = Math.round((state.doneCopies / state.totalCopies) * 100);
+            document.getElementById('doneCount').textContent = state.doneCopies;
+            document.getElementById('remainingCount').textContent = state.totalCopies - state.doneCopies;
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('sprintsCompleted').textContent = state.sprintsCompleted;
+        }
+
+        function updateSprintDots() {
+            for (let i = 0; i < 5; i++) {
+                const dot = document.getElementById('dot' + i);
+                if (i < state.currentSprintProgress) {
+                    dot.classList.add('done');
+                    // Show time for completed copy
+                    const time = state.currentSprintTimes[i];
+                    dot.textContent = time ? formatTime(time) : '✓';
+                } else {
+                    dot.classList.remove('done');
+                    dot.textContent = '-';
+                }
+            }
+
+            const remaining = SPRINT_SIZE - state.currentSprintProgress;
+            document.getElementById('sprintMessage').textContent = `${remaining} copie${remaining > 1 ? 's' : ''} pour terminer ce sprint`;
+        }
+
+        function updateAvgTime() {
+            if (state.allCopyTimes.length === 0) {
+                document.getElementById('avgTime').textContent = '-';
+                return;
+            }
+            const total = state.allCopyTimes.reduce((a, b) => a + b, 0);
+            const avg = Math.floor(total / state.allCopyTimes.length);
+            document.getElementById('avgTime').textContent = formatTime(avg);
+        }
+
+        function updateQuote() {
+            const quote = quotes[Math.floor(Math.random() * quotes.length)];
+            document.getElementById('motivationQuote').textContent = quote;
+        }
+
+        // === CONFETTI ===
+        function spawnConfetti() {
+            const container = document.getElementById('confettiContainer');
+            const colors = ['#e74c3c', '#f39c12', '#2ecc71', '#3498db', '#9b59b6', '#e91e63'];
+
+            for (let i = 0; i < 40; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDelay = Math.random() * 0.5 + 's';
+                container.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 4000);
+            }
+        }
+
+        // === VIBRATION ===
+        function vibrate() {
+            if ('vibrate' in navigator) {
+                navigator.vibrate(50);
+            }
+        }
+    </script>
+</body>
+</html>
