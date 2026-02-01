@@ -698,7 +698,7 @@
 
         <div class="setup-card">
             <p class="setup-label">Combien de copies à corriger ?</p>
-            <input type="number" class="setup-input" id="totalCopies" value="45" min="1" max="200" inputmode="numeric">
+            <input type="number" class="setup-input" id="totalCopies" placeholder="30" min="1" max="200" inputmode="numeric">
             <button class="start-btn" onclick="startSession()">C'est parti ! 🚀</button>
         </div>
     </div>
@@ -713,7 +713,7 @@
         <div class="progress-section">
             <div class="progress-header">
                 <span class="progress-text">Progression</span>
-                <span class="progress-count"><span id="doneCount">0</span> / <span id="totalCount">45</span></span>
+                <span class="progress-count"><span id="doneCount">0</span> / <span id="totalCount" onclick="editTotal()" style="cursor:pointer;text-decoration:underline dotted;"></span> <span onclick="editTotal()" style="cursor:pointer;font-size:0.7rem;opacity:0.6;">✏️</span></span>
             </div>
             <div class="progress-bar-container">
                 <div class="progress-bar" id="progressBar" style="width: 0%"></div>
@@ -759,7 +759,7 @@
                 <div class="stat-label">Moy/copie</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="remainingCount">45</div>
+                <div class="stat-value" id="remainingCount">-</div>
                 <div class="stat-label">Restantes</div>
             </div>
         </div>
@@ -812,7 +812,7 @@
 
     <script>
         let state = {
-            totalCopies: 45,
+            totalCopies: 0,
             doneCopies: 0,
             sprintsCompleted: 0,
             currentSprintProgress: 0,
@@ -960,7 +960,16 @@
         }
 
         function startSession() {
-            const total = parseInt(document.getElementById('totalCopies').value) || 45;
+            const inputVal = document.getElementById('totalCopies').value;
+            if (!inputVal || inputVal.trim() === '') {
+                alert('Entre le nombre de copies à corriger');
+                return;
+            }
+            const total = parseInt(inputVal);
+            if (isNaN(total) || total < 1) {
+                alert('Entre un nombre valide');
+                return;
+            }
             state = {
                 totalCopies: total,
                 doneCopies: 0,
@@ -1164,7 +1173,8 @@
             document.getElementById('copyChronoBox').classList.remove('paused');
             document.getElementById('copyChronoLabel').textContent = '⏱ Temps copie en cours';
 
-            state = { totalCopies: 45, doneCopies: 0, sprintsCompleted: 0, currentSprintProgress: 0, startTime: null, copyStartTime: null, elapsedBeforePause: 0, isPaused: false, sprintTimes: [], currentSprintTimes: [], allCopyTimes: [], undoStack: [], sessionActive: false };
+            state = { totalCopies: 0, doneCopies: 0, sprintsCompleted: 0, currentSprintProgress: 0, startTime: null, copyStartTime: null, elapsedBeforePause: 0, isPaused: false, sprintTimes: [], currentSprintTimes: [], allCopyTimes: [], undoStack: [], sessionActive: false };
+            document.getElementById('totalCopies').value = '';
         }
 
         function updateUI() {
@@ -1225,6 +1235,21 @@
 
         function vibrate() {
             if ('vibrate' in navigator) navigator.vibrate(50);
+        }
+
+        function editTotal() {
+            const current = state.totalCopies;
+            const min = state.doneCopies || 1;
+            const newTotal = prompt(`Nombre total de copies ?\n(minimum ${min} car tu en as déjà fait ${state.doneCopies})`, current);
+            if (newTotal === null) return;
+            const parsed = parseInt(newTotal);
+            if (isNaN(parsed) || parsed < min) {
+                alert(`Le nombre doit être au moins ${min}`);
+                return;
+            }
+            state.totalCopies = parsed;
+            document.getElementById('totalCount').textContent = parsed;
+            updateUI();
         }
     </script>
 </body>
