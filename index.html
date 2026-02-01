@@ -97,28 +97,41 @@
             animation: fadeIn 0.3s ease;
         }
 
-        .setup-optional {
-            margin-top: 15px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            padding-top: 15px;
-        }
-
-        .setup-optional-toggle {
-            font-size: 0.85rem;
-            color: #888;
-            cursor: pointer;
+        .setup-choice {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 8px;
+            gap: 10px;
+            margin-top: 10px;
         }
 
-        .setup-optional-toggle:hover { color: #aaa; }
+        .setup-choice.hidden { display: none; }
+
+        .setup-choice-btn {
+            flex: 1;
+            padding: 16px 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            min-height: 55px;
+        }
+
+        .setup-choice-btn.details {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+
+        .setup-choice-btn.start {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        .setup-choice-btn:active { transform: scale(0.98); }
 
         .setup-optional-fields {
             display: none;
             margin-top: 15px;
+            animation: fadeIn 0.3s ease;
         }
 
         .setup-optional-fields.show { display: block; }
@@ -903,11 +916,12 @@
             <input type="number" class="setup-input" id="totalCopies" min="1" max="200" inputmode="numeric" oninput="onCopiesInput()">
             <p class="setup-encouragement" id="setupEncouragement"></p>
 
-            <div class="setup-optional">
-                <div class="setup-optional-toggle" onclick="toggleOptionalFields()">
-                    <span id="optionalArrow">▶</span> Détails (facultatif)
-                </div>
-                <div class="setup-optional-fields" id="optionalFields">
+            <div class="setup-choice" id="setupChoice">
+                <button class="setup-choice-btn details" onclick="showDetails()">📝 Ajouter des détails</button>
+                <button class="setup-choice-btn start" onclick="startSession()">🚀 Commencer</button>
+            </div>
+
+            <div class="setup-optional-fields" id="optionalFields">
                     <div class="setup-field">
                         <div class="setup-field-label">Nom de l'évaluation</div>
                         <input type="text" class="setup-field-input" id="evalName" placeholder="ex: Contrôle fractions">
@@ -947,9 +961,8 @@
                         <div class="csv-status" id="csvStatus"></div>
                     </div>
                 </div>
+                <button class="start-btn" onclick="startSession()">C'est parti ! 🚀</button>
             </div>
-
-            <button class="start-btn" onclick="startSession()">C'est parti ! 🚀</button>
         </div>
     </div>
 
@@ -1151,16 +1164,14 @@
             }
         }
 
-        function toggleOptionalFields() {
-            const fields = document.getElementById('optionalFields');
-            const arrow = document.getElementById('optionalArrow');
-            if (fields.classList.contains('show')) {
-                fields.classList.remove('show');
-                arrow.textContent = '▶';
-            } else {
-                fields.classList.add('show');
-                arrow.textContent = '▼';
+        function showDetails() {
+            const inputVal = document.getElementById('totalCopies').value;
+            if (!inputVal || inputVal.trim() === '') {
+                alert('Entre d\'abord le nombre de copies');
+                return;
             }
+            document.getElementById('setupChoice').classList.add('hidden');
+            document.getElementById('optionalFields').classList.add('show');
         }
 
         function selectChip(chip, type) {
@@ -1633,7 +1644,7 @@
             document.getElementById('csvUploadBtn').innerHTML = '<input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">📋 Importer CSV';
             document.getElementById('csvStatus').textContent = '';
             document.getElementById('optionalFields').classList.remove('show');
-            document.getElementById('optionalArrow').textContent = '▶';
+            document.getElementById('setupChoice').classList.remove('hidden');
         }
 
         function updateUI() {
