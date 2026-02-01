@@ -1391,11 +1391,19 @@
             saveSettings();
         }
 
+        let modalClicksEnabled = false;
+
         function showStudentModal() {
+            modalClicksEnabled = false;
             document.getElementById('studentSearch').value = '';
-            renderStudentList('');
+            document.getElementById('studentList').innerHTML = '';
             document.getElementById('studentModal').classList.add('show');
-            setTimeout(() => document.getElementById('studentSearch').focus(), 100);
+            // Délai pour éviter que le clic d'ouverture ne sélectionne un élève
+            setTimeout(() => {
+                document.getElementById('studentSearch').focus();
+                renderStudentList('');
+                modalClicksEnabled = true;
+            }, 150);
         }
 
         function filterStudents() {
@@ -1403,27 +1411,42 @@
             renderStudentList(query);
         }
 
+        let filteredStudents = [];
+
         function renderStudentList(query) {
             const list = document.getElementById('studentList');
             const correctedNames = state.correctedStudents.map(s => `${s.nom}|${s.prenom}`);
 
-            let filtered = students;
+            filteredStudents = students;
             if (query.length >= 2) {
-                filtered = students.filter(s =>
+                filteredStudents = students.filter(s =>
                     s.nom.toLowerCase().includes(query) ||
                     s.prenom.toLowerCase().includes(query)
                 );
             }
 
-            list.innerHTML = filtered.slice(0, 20).map(s => {
+            list.innerHTML = filteredStudents.slice(0, 20).map((s, index) => {
                 const isDone = correctedNames.includes(`${s.nom}|${s.prenom}`);
-                return `<div class="student-item ${isDone ? 'done' : ''}" onclick="selectStudent('${s.nom.replace(/'/g, "\\'")}', '${s.prenom.replace(/'/g, "\\'")}', '${s.classe.replace(/'/g, "\\'")}')">
+                return `<div class="student-item ${isDone ? 'done' : ''}" data-index="${index}">
                     <div class="student-name">${s.prenom} ${s.nom}</div>
                     ${s.classe ? `<div class="student-info">${s.classe}</div>` : ''}
                 </div>`;
             }).join('');
 
-            if (filtered.length === 0 && query.length >= 2) {
+            // Attach click handlers properly
+            list.querySelectorAll('.student-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (!modalClicksEnabled) return; // Ignore clicks during modal opening
+                    const idx = parseInt(this.dataset.index);
+                    const student = filteredStudents[idx];
+                    if (student) {
+                        selectStudent(student.nom, student.prenom, student.classe);
+                    }
+                });
+            });
+
+            if (filteredStudents.length === 0 && query.length >= 2) {
                 list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Aucun élève trouvé</div>';
             }
         }
