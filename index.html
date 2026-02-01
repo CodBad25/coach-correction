@@ -106,9 +106,15 @@
 
         /* Hero icon */
         .setup-hero {
-            font-size: 4rem;
-            margin-bottom: 10px;
-            filter: drop-shadow(0 4px 15px rgba(243, 156, 18, 0.4));
+            font-size: 4.5rem;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 4px 20px rgba(231, 76, 60, 0.5));
+            animation: gentle-bounce 3s ease-in-out infinite;
+        }
+
+        @keyframes gentle-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
         }
 
         /* Details toggle */
@@ -977,7 +983,7 @@
 <body>
     <!-- SETUP SCREEN -->
     <div class="setup-screen" id="setupScreen">
-        <div class="setup-hero">📚</div>
+        <div class="setup-hero">✏️</div>
         <h1 class="setup-title">Coach de Correction</h1>
         <p class="setup-subtitle">Transforme la corvée en victoire</p>
 
