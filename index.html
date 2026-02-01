@@ -1641,13 +1641,61 @@
             showStudentModal();
         }
 
-        function enableNoSleep() {
-            document.getElementById('noSleepVideo').play().catch(() => {});
+        let wakeLock = null;
+        let noSleepInterval = null;
+
+        async function enableNoSleep() {
+            // Méthode 1: Wake Lock API (Chrome, Edge, Safari 16.4+)
+            if ('wakeLock' in navigator) {
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    wakeLock.addEventListener('release', () => {
+                        // Réacquérir si la page redevient visible
+                        if (document.visibilityState === 'visible' && state.sessionActive) {
+                            enableNoSleep();
+                        }
+                    });
+                    return;
+                } catch (e) {
+                    console.log('Wake Lock failed, using fallback');
+                }
+            }
+
+            // Méthode 2: Fallback vidéo pour anciens navigateurs
+            const video = document.getElementById('noSleepVideo');
+            video.play().catch(() => {});
+
+            // Méthode 3: Fallback avec refresh périodique pour iOS
+            if (noSleepInterval) clearInterval(noSleepInterval);
+            noSleepInterval = setInterval(() => {
+                if (state.sessionActive) {
+                    video.play().catch(() => {});
+                    // Petit trick: toucher le DOM pour garder la page active
+                    window.scrollTo(window.scrollX, window.scrollY);
+                }
+            }, 15000);
         }
 
-        function disableNoSleep() {
+        async function disableNoSleep() {
+            if (wakeLock) {
+                try {
+                    await wakeLock.release();
+                    wakeLock = null;
+                } catch (e) {}
+            }
             document.getElementById('noSleepVideo').pause();
+            if (noSleepInterval) {
+                clearInterval(noSleepInterval);
+                noSleepInterval = null;
+            }
         }
+
+        // Réactiver le wake lock quand la page redevient visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible' && state.sessionActive) {
+                enableNoSleep();
+            }
+        });
 
         function startCopyChrono() {
             state.copyStartTime = Date.now();
