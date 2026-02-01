@@ -104,23 +104,48 @@
             min-height: 20px;
         }
 
+        /* Hero icon */
+        .setup-hero {
+            font-size: 4rem;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 4px 15px rgba(243, 156, 18, 0.4));
+        }
+
         /* Details toggle */
         .setup-details-toggle {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            padding: 10px;
-            color: #888;
-            font-size: 0.85rem;
+            gap: 10px;
+            padding: 12px 20px;
+            color: #aaa;
+            font-size: 0.9rem;
+            font-weight: 500;
             cursor: pointer;
             margin-bottom: 10px;
-            transition: color 0.2s;
+            background: rgba(155, 89, 182, 0.1);
+            border: 2px solid rgba(155, 89, 182, 0.3);
+            border-radius: 10px;
+            transition: all 0.3s;
         }
 
-        .setup-details-toggle:hover { color: #9b59b6; }
-        .setup-details-toggle.open { color: #9b59b6; }
-        .setup-details-toggle .arrow { transition: transform 0.3s; }
+        .setup-details-toggle:hover {
+            background: rgba(155, 89, 182, 0.2);
+            border-color: rgba(155, 89, 182, 0.5);
+            color: #c9a0dc;
+        }
+
+        .setup-details-toggle.open {
+            background: rgba(155, 89, 182, 0.25);
+            border-color: #9b59b6;
+            color: #9b59b6;
+        }
+
+        .setup-details-toggle .arrow {
+            transition: transform 0.3s;
+            font-size: 0.8rem;
+        }
+
         .setup-details-toggle.open .arrow { transform: rotate(180deg); }
 
         /* Details panel */
@@ -952,6 +977,7 @@
 <body>
     <!-- SETUP SCREEN -->
     <div class="setup-screen" id="setupScreen">
+        <div class="setup-hero">📚</div>
         <h1 class="setup-title">Coach de Correction</h1>
         <p class="setup-subtitle">Transforme la corvée en victoire</p>
 
@@ -965,8 +991,8 @@
 
             <!-- Details toggle -->
             <div class="setup-details-toggle" id="detailsToggle" onclick="toggleDetails()">
+                <span id="detailsToggleText">+ Ajouter des détails</span>
                 <span class="arrow">▼</span>
-                <span id="detailsToggleText">Ajouter des détails</span>
             </div>
 
             <!-- Details panel -->
@@ -1240,11 +1266,11 @@
             if (panel.classList.contains('open')) {
                 panel.classList.remove('open');
                 toggle.classList.remove('open');
-                text.textContent = 'Ajouter des détails';
+                text.textContent = '+ Ajouter des détails';
             } else {
                 panel.classList.add('open');
                 toggle.classList.add('open');
-                text.textContent = 'Masquer les détails';
+                text.textContent = '− Masquer';
             }
         }
 
@@ -1749,7 +1775,7 @@
             document.getElementById('csvStatus').textContent = '';
             document.getElementById('detailsPanel').classList.remove('open');
             document.getElementById('detailsToggle').classList.remove('open');
-            document.getElementById('detailsToggleText').textContent = 'Ajouter des détails';
+            document.getElementById('detailsToggleText').textContent = '+ Ajouter des détails';
         }
 
         function updateUI() {
