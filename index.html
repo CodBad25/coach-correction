@@ -33,8 +33,9 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-height: 85vh;
+            justify-content: flex-start;
+            padding-top: 8vh;
+            min-height: 100vh;
             text-align: center;
             animation: fadeIn 0.5s ease;
             width: 100%;
@@ -43,8 +44,8 @@
         .setup-screen.hidden { display: none; }
 
         .setup-title {
-            font-size: 2rem;
-            margin-bottom: 10px;
+            font-size: 1.6rem;
+            margin-bottom: 5px;
             background: linear-gradient(135deg, #f39c12, #e74c3c, #9b59b6);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -52,146 +53,119 @@
         }
 
         .setup-subtitle {
-            font-size: 1rem;
-            color: #888;
-            margin-bottom: 30px;
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 20px;
         }
 
         .setup-card {
             background: rgba(255,255,255,0.05);
-            border-radius: 24px;
-            padding: 30px;
+            border-radius: 20px;
+            padding: 20px;
             border: 2px solid rgba(255,255,255,0.1);
-            max-width: 350px;
+            max-width: 340px;
             width: 100%;
         }
 
-        .setup-label {
-            font-size: 1.1rem;
-            margin-bottom: 15px;
-            color: #ccc;
+        .setup-main-input {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
         }
 
-        .setup-input {
-            width: 100%;
-            padding: 18px;
-            font-size: 2rem;
+        .setup-main-input label {
+            font-size: 0.9rem;
+            color: #aaa;
+            white-space: nowrap;
+        }
+
+        .setup-main-input input {
+            flex: 1;
+            padding: 14px;
+            font-size: 1.8rem;
             text-align: center;
             border: 3px solid #3498db;
-            border-radius: 16px;
+            border-radius: 12px;
             background: rgba(52, 152, 219, 0.1);
             color: white;
-            margin-bottom: 25px;
+            max-width: 120px;
         }
 
-        .setup-input:focus {
+        .setup-main-input input:focus {
             outline: none;
             border-color: #9b59b6;
         }
 
         .setup-encouragement {
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             color: #2ecc71;
-            margin: -15px 0 20px 0;
-            min-height: 24px;
-            animation: fadeIn 0.3s ease;
+            margin-bottom: 15px;
+            min-height: 20px;
         }
 
-        .setup-step {
-            animation: fadeIn 0.3s ease;
-        }
-
-        .setup-step.hidden { display: none; }
-
-        .setup-step-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #9b59b6;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .setup-choice {
+        /* Details toggle */
+        .setup-details-toggle {
             display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .setup-choice-btn {
-            flex: 1;
-            padding: 16px 12px;
-            font-size: 1rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 14px;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px;
+            color: #888;
+            font-size: 0.85rem;
             cursor: pointer;
-            min-height: 55px;
+            margin-bottom: 10px;
+            transition: color 0.2s;
         }
 
-        .setup-choice-btn.details {
-            background: linear-gradient(135deg, #9b59b6, #8e44ad);
-            color: white;
+        .setup-details-toggle:hover { color: #9b59b6; }
+        .setup-details-toggle.open { color: #9b59b6; }
+        .setup-details-toggle .arrow { transition: transform 0.3s; }
+        .setup-details-toggle.open .arrow { transform: rotate(180deg); }
+
+        /* Details panel */
+        .setup-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
         }
 
-        .setup-choice-btn.start {
-            background: linear-gradient(135deg, #27ae60, #2ecc71);
-            color: white;
+        .setup-details.open {
+            max-height: 500px;
         }
 
-        .setup-choice-btn:active { transform: scale(0.98); }
+        .setup-details-inner {
+            padding: 10px 0;
+        }
 
-        .setup-nav {
+        /* Compact row */
+        .setup-row {
             display: flex;
-            gap: 10px;
-            margin-top: 20px;
+            gap: 8px;
+            margin-bottom: 10px;
         }
 
-        .setup-nav-btn {
-            flex: 1;
-            padding: 15px;
-            font-size: 1rem;
-            font-weight: bold;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            min-height: 50px;
-        }
-
-        .setup-nav-btn.back {
-            background: transparent;
-            border: 2px solid rgba(255,255,255,0.3);
-            color: #aaa;
-        }
-
-        .setup-nav-btn.next {
-            background: linear-gradient(135deg, #3498db, #2980b9);
-            color: white;
-        }
-
-        .setup-nav-btn.start {
-            background: linear-gradient(135deg, #27ae60, #2ecc71);
-            color: white;
-        }
-
-        .setup-nav-btn:active { transform: scale(0.98); }
+        .setup-row .setup-field { flex: 1; margin-bottom: 0; }
 
         .setup-field {
-            margin-bottom: 12px;
+            margin-bottom: 10px;
+            text-align: left;
         }
 
         .setup-field-label {
-            font-size: 0.8rem;
-            color: #888;
-            margin-bottom: 5px;
-            text-align: left;
+            font-size: 0.7rem;
+            color: #666;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .setup-field-input {
             width: 100%;
-            padding: 12px;
-            font-size: 1rem;
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 10px;
+            padding: 10px;
+            font-size: 0.9rem;
+            border: 2px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
             background: rgba(255,255,255,0.05);
             color: white;
         }
@@ -201,22 +175,27 @@
             border-color: #9b59b6;
         }
 
+        .setup-field-input::placeholder { color: #555; }
+
+        /* Mini chips */
         .setup-chips {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
+            gap: 6px;
         }
 
         .setup-chip {
-            padding: 8px 14px;
-            font-size: 0.85rem;
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border: 2px solid rgba(255,255,255,0.15);
+            border-radius: 16px;
             background: transparent;
-            color: #ccc;
+            color: #999;
             cursor: pointer;
+            transition: all 0.2s;
         }
+
+        .setup-chip:hover { border-color: #9b59b6; color: #9b59b6; }
 
         .setup-chip.selected {
             border-color: #9b59b6;
@@ -224,20 +203,21 @@
             color: white;
         }
 
+        /* CSV */
         .csv-upload-btn {
-            display: inline-block;
-            padding: 12px 20px;
-            font-size: 0.9rem;
-            border: 2px dashed rgba(255,255,255,0.3);
-            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px;
+            font-size: 0.8rem;
+            border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: 8px;
             background: transparent;
-            color: #ccc;
+            color: #888;
             cursor: pointer;
-            text-align: center;
             width: 100%;
         }
-
-        .csv-upload-btn:hover { border-color: #9b59b6; color: #9b59b6; }
 
         .csv-upload-btn.loaded {
             border-style: solid;
@@ -245,12 +225,23 @@
             color: #2ecc71;
         }
 
-        .csv-status {
-            font-size: 0.8rem;
-            color: #2ecc71;
-            margin-top: 8px;
-            text-align: center;
+        .csv-status { display: none; }
+
+        /* Start button */
+        .setup-start-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            cursor: pointer;
+            margin-top: 15px;
         }
+
+        .setup-start-btn:active { transform: scale(0.98); }
 
         /* === STUDENT SEARCH MODAL === */
         .student-modal {
@@ -951,72 +942,75 @@
         <p class="setup-subtitle">Transforme la corvée en victoire</p>
 
         <div class="setup-card">
-            <!-- STEP 1: Nombre de copies -->
-            <div class="setup-step" id="step1">
-                <p class="setup-label">Combien de copies à corriger ?</p>
-                <input type="number" class="setup-input" id="totalCopies" min="1" max="200" inputmode="numeric" oninput="onCopiesInput()">
-                <p class="setup-encouragement" id="setupEncouragement"></p>
-                <div class="setup-choice" id="setupChoice">
-                    <button class="setup-choice-btn details" onclick="goToStep(2)">Ajouter des détails</button>
-                    <button class="setup-choice-btn start" onclick="startSession()">Commencer</button>
+            <!-- Copies input -->
+            <div class="setup-main-input">
+                <label>Copies</label>
+                <input type="number" id="totalCopies" min="1" max="200" inputmode="numeric" oninput="onCopiesInput()">
+            </div>
+            <p class="setup-encouragement" id="setupEncouragement"></p>
+
+            <!-- Details toggle -->
+            <div class="setup-details-toggle" id="detailsToggle" onclick="toggleDetails()">
+                <span class="arrow">▼</span>
+                <span id="detailsToggleText">Ajouter des détails</span>
+            </div>
+
+            <!-- Details panel -->
+            <div class="setup-details" id="detailsPanel">
+                <div class="setup-details-inner">
+                    <!-- Row 1: Nom + Classe -->
+                    <div class="setup-row">
+                        <div class="setup-field">
+                            <div class="setup-field-label">Évaluation</div>
+                            <input type="text" class="setup-field-input" id="evalName" placeholder="Contrôle fractions">
+                        </div>
+                        <div class="setup-field">
+                            <div class="setup-field-label">Classe</div>
+                            <input type="text" class="setup-field-input" id="evalClasse" placeholder="6ème A">
+                        </div>
+                    </div>
+
+                    <!-- Niveau -->
+                    <div class="setup-field">
+                        <div class="setup-field-label">Niveau</div>
+                        <div class="setup-chips">
+                            <button type="button" class="setup-chip" data-value="6eme" onclick="selectChip(this, 'level')">6ème</button>
+                            <button type="button" class="setup-chip" data-value="5eme" onclick="selectChip(this, 'level')">5ème</button>
+                            <button type="button" class="setup-chip" data-value="4eme" onclick="selectChip(this, 'level')">4ème</button>
+                            <button type="button" class="setup-chip" data-value="3eme" onclick="selectChip(this, 'level')">3ème</button>
+                        </div>
+                    </div>
+
+                    <!-- Type -->
+                    <div class="setup-field">
+                        <div class="setup-field-label">Type</div>
+                        <div class="setup-chips">
+                            <button type="button" class="setup-chip" data-value="controle" onclick="selectChip(this, 'type')">Contrôle</button>
+                            <button type="button" class="setup-chip" data-value="dm" onclick="selectChip(this, 'type')">DM</button>
+                            <button type="button" class="setup-chip" data-value="interro" onclick="selectChip(this, 'type')">Interro</button>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Thème + CSV -->
+                    <div class="setup-row">
+                        <div class="setup-field">
+                            <div class="setup-field-label">Thème</div>
+                            <input type="text" class="setup-field-input" id="evalTheme" placeholder="Géométrie...">
+                        </div>
+                        <div class="setup-field">
+                            <div class="setup-field-label">Élèves</div>
+                            <label class="csv-upload-btn" id="csvUploadBtn">
+                                <input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">
+                                CSV
+                            </label>
+                            <div class="csv-status" id="csvStatus"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- STEP 2: Évaluation -->
-            <div class="setup-step hidden" id="step2">
-                <p class="setup-step-title">Évaluation</p>
-                <div class="setup-field">
-                    <div class="setup-field-label">Nom</div>
-                    <input type="text" class="setup-field-input" id="evalName" placeholder="ex: Contrôle fractions">
-                </div>
-                <div class="setup-field">
-                    <div class="setup-field-label">Niveau</div>
-                    <div class="setup-chips">
-                        <button type="button" class="setup-chip" data-value="6eme" onclick="selectChip(this, 'level')">6ème</button>
-                        <button type="button" class="setup-chip" data-value="5eme" onclick="selectChip(this, 'level')">5ème</button>
-                        <button type="button" class="setup-chip" data-value="4eme" onclick="selectChip(this, 'level')">4ème</button>
-                        <button type="button" class="setup-chip" data-value="3eme" onclick="selectChip(this, 'level')">3ème</button>
-                    </div>
-                </div>
-                <div class="setup-field">
-                    <div class="setup-field-label">Classe</div>
-                    <input type="text" class="setup-field-input" id="evalClasse" placeholder="ex: 6ème A, 5ème 3...">
-                </div>
-                <div class="setup-nav">
-                    <button class="setup-nav-btn back" onclick="goToStep(1)">Retour</button>
-                    <button class="setup-nav-btn next" onclick="goToStep(3)">Suivant</button>
-                </div>
-            </div>
-
-            <!-- STEP 3: Options -->
-            <div class="setup-step hidden" id="step3">
-                <p class="setup-step-title">Options</p>
-                <div class="setup-field">
-                    <div class="setup-field-label">Type</div>
-                    <div class="setup-chips">
-                        <button type="button" class="setup-chip" data-value="controle" onclick="selectChip(this, 'type')">Contrôle</button>
-                        <button type="button" class="setup-chip" data-value="dm" onclick="selectChip(this, 'type')">DM</button>
-                        <button type="button" class="setup-chip" data-value="interro" onclick="selectChip(this, 'type')">Interro</button>
-                        <button type="button" class="setup-chip" data-value="autre" onclick="selectChip(this, 'type')">Autre</button>
-                    </div>
-                </div>
-                <div class="setup-field">
-                    <div class="setup-field-label">Thème (optionnel)</div>
-                    <input type="text" class="setup-field-input" id="evalTheme" placeholder="ex: Géométrie, Calcul...">
-                </div>
-                <div class="setup-field">
-                    <div class="setup-field-label">Liste élèves</div>
-                    <label class="csv-upload-btn" id="csvUploadBtn">
-                        <input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">
-                        Importer CSV
-                    </label>
-                    <div class="csv-status" id="csvStatus"></div>
-                </div>
-                <div class="setup-nav">
-                    <button class="setup-nav-btn back" onclick="goToStep(2)">Retour</button>
-                    <button class="setup-nav-btn start" onclick="startSession()">Commencer</button>
-                </div>
-            </div>
+            <!-- Start button -->
+            <button class="setup-start-btn" onclick="startSession()">Commencer</button>
         </div>
     </div>
 
@@ -1218,16 +1212,20 @@
             }
         }
 
-        function goToStep(stepNum) {
-            if (stepNum > 1) {
-                const inputVal = document.getElementById('totalCopies').value;
-                if (!inputVal || inputVal.trim() === '') {
-                    alert('Entre d\'abord le nombre de copies');
-                    return;
-                }
+        function toggleDetails() {
+            const panel = document.getElementById('detailsPanel');
+            const toggle = document.getElementById('detailsToggle');
+            const text = document.getElementById('detailsToggleText');
+
+            if (panel.classList.contains('open')) {
+                panel.classList.remove('open');
+                toggle.classList.remove('open');
+                text.textContent = 'Ajouter des détails';
+            } else {
+                panel.classList.add('open');
+                toggle.classList.add('open');
+                text.textContent = 'Masquer les détails';
             }
-            document.querySelectorAll('.setup-step').forEach(s => s.classList.add('hidden'));
-            document.getElementById('step' + stepNum).classList.remove('hidden');
         }
 
         function selectChip(chip, type) {
@@ -1697,9 +1695,11 @@
             selectedType = '';
             students = [];
             document.getElementById('csvUploadBtn').classList.remove('loaded');
-            document.getElementById('csvUploadBtn').innerHTML = '<input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">Importer CSV';
+            document.getElementById('csvUploadBtn').innerHTML = '<input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">CSV';
             document.getElementById('csvStatus').textContent = '';
-            goToStep(1);
+            document.getElementById('detailsPanel').classList.remove('open');
+            document.getElementById('detailsToggle').classList.remove('open');
+            document.getElementById('detailsToggleText').textContent = 'Ajouter des détails';
         }
 
         function updateUI() {
