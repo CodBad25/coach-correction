@@ -105,37 +105,19 @@
         }
 
         /* Hero image */
-        .setup-hero-container {
-            position: relative;
-            margin-bottom: 12px;
-        }
-
         .setup-hero {
             width: 140px;
             height: 140px;
             border-radius: 20px;
+            margin-bottom: 12px;
             object-fit: cover;
             filter: drop-shadow(0 8px 25px rgba(0, 0, 0, 0.4));
             animation: gentle-bounce 3s ease-in-out infinite;
         }
 
-        .setup-pencil {
-            position: absolute;
-            bottom: -5px;
-            right: -15px;
-            font-size: 2.5rem;
-            animation: pencil-bounce 2s ease-in-out infinite;
-            filter: drop-shadow(0 4px 10px rgba(231, 76, 60, 0.5));
-        }
-
         @keyframes gentle-bounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-5px); }
-        }
-
-        @keyframes pencil-bounce {
-            0%, 100% { transform: translateY(0) rotate(-10deg); }
-            50% { transform: translateY(-8px) rotate(5deg); }
         }
 
         /* Details toggle */
@@ -1004,10 +986,7 @@
 <body>
     <!-- SETUP SCREEN -->
     <div class="setup-screen" id="setupScreen">
-        <div class="setup-hero-container">
-            <img src="teacher.png" alt="Prof fatigué" class="setup-hero">
-            <span class="setup-pencil">✏️</span>
-        </div>
+        <img src="teacher.png" alt="Prof fatigué" class="setup-hero">
         <h1 class="setup-title">Coach de Correction</h1>
         <p class="setup-subtitle">Transforme la corvée en victoire</p>
 
