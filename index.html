@@ -238,6 +238,11 @@
             text-align: center;
         }
 
+        .copy-chrono.paused {
+            border-color: #f39c12;
+            background: rgba(243, 156, 18, 0.2);
+        }
+
         .copy-chrono-label {
             font-size: 0.75rem;
             color: #3498db;
@@ -246,11 +251,71 @@
             margin-bottom: 5px;
         }
 
+        .copy-chrono.paused .copy-chrono-label {
+            color: #f39c12;
+        }
+
         .copy-chrono-time {
             font-size: 2.5rem;
             font-weight: bold;
             font-family: 'Courier New', monospace;
             color: #3498db;
+        }
+
+        .copy-chrono.paused .copy-chrono-time {
+            color: #f39c12;
+        }
+
+        /* === BUTTONS ROW === */
+        .buttons-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .pause-btn {
+            flex: 1;
+            padding: 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            cursor: pointer;
+            min-height: 55px;
+        }
+
+        .pause-btn.is-paused {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+        }
+
+        .pause-btn:active {
+            transform: scale(0.98);
+        }
+
+        .undo-btn {
+            flex: 1;
+            padding: 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            background: transparent;
+            color: #ccc;
+            cursor: pointer;
+            min-height: 55px;
+        }
+
+        .undo-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .undo-btn:active:not(:disabled) {
+            border-color: #e74c3c;
+            color: #e74c3c;
         }
 
         /* === DONE BUTTON === */
@@ -274,6 +339,11 @@
 
         .done-btn::before {
             content: '📝 ';
+        }
+
+        .done-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         /* === STATS === */
@@ -384,7 +454,6 @@
             border-top: 2px solid rgba(255,255,255,0.2);
         }
 
-        /* Sprint comparison */
         .sprint-comparison {
             background: rgba(0,0,0,0.3);
             border-radius: 12px;
@@ -449,8 +518,8 @@
             color: white;
         }
 
-        /* === PAUSE MODAL === */
-        .pause-modal {
+        /* === BREAK MODAL === */
+        .break-modal {
             position: fixed;
             top: 0;
             left: 0;
@@ -464,25 +533,25 @@
             padding: 20px;
         }
 
-        .pause-modal.show { display: flex; }
+        .break-modal.show { display: flex; }
 
-        .pause-content {
+        .break-content {
             text-align: center;
         }
 
-        .pause-emoji {
+        .break-emoji {
             font-size: 4rem;
             margin-bottom: 15px;
         }
 
-        .pause-title {
+        .break-title {
             font-size: 1.5rem;
             font-weight: bold;
             color: #3498db;
             margin-bottom: 10px;
         }
 
-        .pause-timer {
+        .break-timer {
             font-size: 4rem;
             font-weight: bold;
             font-family: 'Courier New', monospace;
@@ -490,7 +559,7 @@
             margin-bottom: 20px;
         }
 
-        .pause-skip-btn {
+        .break-skip-btn {
             padding: 15px 40px;
             font-size: 1rem;
             font-weight: bold;
@@ -541,6 +610,7 @@
             color: #888;
             margin-bottom: 20px;
             line-height: 1.6;
+            white-space: pre-line;
         }
 
         .finish-sprints {
@@ -571,7 +641,6 @@
         .finish-sprint-bar-fill {
             height: 100%;
             border-radius: 4px;
-            transition: width 0.5s;
         }
 
         .finish-btn {
@@ -609,11 +678,9 @@
             100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
         }
 
-        /* Prevent text selection */
         * { -webkit-user-select: none; user-select: none; }
         input { -webkit-user-select: text; user-select: text; }
 
-        /* Safe area */
         @supports (padding: max(0px)) {
             body {
                 padding-left: max(15px, env(safe-area-inset-left));
@@ -667,13 +734,19 @@
         </div>
 
         <!-- COPY CHRONO -->
-        <div class="copy-chrono">
-            <div class="copy-chrono-label">⏱ Temps copie en cours</div>
+        <div class="copy-chrono" id="copyChronoBox">
+            <div class="copy-chrono-label" id="copyChronoLabel">⏱ Temps copie en cours</div>
             <div class="copy-chrono-time" id="copyChronoTime">0:00</div>
         </div>
 
+        <!-- PAUSE & UNDO BUTTONS -->
+        <div class="buttons-row">
+            <button class="pause-btn" id="pauseBtn" onclick="togglePause()">⏸ Pause</button>
+            <button class="undo-btn" id="undoBtn" onclick="undoLastCopy()" disabled>↩ Annuler</button>
+        </div>
+
         <!-- DONE BUTTON -->
-        <button class="done-btn" onclick="markDone()">Copie terminée !</button>
+        <button class="done-btn" id="doneBtn" onclick="markDone()">Copie terminée !</button>
 
         <!-- STATS -->
         <div class="stats-section">
@@ -700,7 +773,7 @@
         <h1 class="finish-title">TERMINÉ !</h1>
         <p class="finish-stats" id="finishStats"></p>
         <div class="finish-sprints" id="finishSprints"></div>
-        <button class="finish-btn" onclick="resetSession()">🎯 Nouvelle session</button>
+        <button class="finish-btn" onclick="newSession()">🎯 Nouvelle session</button>
     </div>
 
     <!-- SPRINT RECAP MODAL -->
@@ -710,42 +783,34 @@
                 <div class="sprint-recap-emoji">🎉</div>
                 <div class="sprint-recap-title" id="sprintRecapTitle">Sprint 1 terminé !</div>
             </div>
-
-            <div class="sprint-recap-times" id="sprintRecapTimes">
-                <!-- Filled by JS -->
-            </div>
-
-            <div class="sprint-comparison" id="sprintComparison">
-                <!-- Filled by JS -->
-            </div>
-
+            <div class="sprint-recap-times" id="sprintRecapTimes"></div>
+            <div class="sprint-comparison" id="sprintComparison"></div>
             <div class="sprint-recap-buttons">
-                <button class="sprint-recap-btn pause" onclick="startPause()">☕ Pause 2min</button>
+                <button class="sprint-recap-btn pause" onclick="startBreak()">☕ Pause 2min</button>
                 <button class="sprint-recap-btn continue" onclick="continueAfterSprint()">Continuer ▶</button>
             </div>
         </div>
     </div>
 
-    <!-- PAUSE MODAL -->
-    <div class="pause-modal" id="pauseModal">
-        <div class="pause-content">
-            <div class="pause-emoji">☕</div>
-            <div class="pause-title">Pause méritée</div>
-            <div class="pause-timer" id="pauseTimer">2:00</div>
-            <button class="pause-skip-btn" onclick="skipPause()">Reprendre maintenant</button>
+    <!-- BREAK MODAL -->
+    <div class="break-modal" id="breakModal">
+        <div class="break-content">
+            <div class="break-emoji">☕</div>
+            <div class="break-title">Pause méritée</div>
+            <div class="break-timer" id="breakTimer">2:00</div>
+            <button class="break-skip-btn" onclick="skipBreak()">Reprendre maintenant</button>
         </div>
     </div>
 
-    <!-- CONFETTI CONTAINER -->
+    <!-- CONFETTI -->
     <div class="confetti-container" id="confettiContainer"></div>
 
-    <!-- NO SLEEP VIDEO (invisible) -->
+    <!-- NO SLEEP VIDEO -->
     <video id="noSleepVideo" playsinline muted loop style="position:absolute;left:-9999px;width:1px;height:1px;">
         <source src="data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAAIZnJlZQAAAs1tZGF0AAACrgYF//+q3EXpvebZSLeWLNgg2SPu73gyNjQgLSBjb3JlIDE0OCByMjYwMSBhMGNkN2QzIC0gSC4yNjQvTVBFRy00IEFWQyBjb2RlYyAtIENvcHlsZWZ0IDIwMDMtMjAxNSAtIGh0dHA6Ly93d3cudmlkZW9sYW4ub3JnL3gyNjQuaHRtbCAtIG9wdGlvbnM6IGNhYmFjPTEgcmVmPTMgZGVibG9jaz0xOjA6MCBhbmFseXNlPTB4MzoweDExMyBtZT1oZXggc3VibWU9NyBwc3k9MSBwc3lfcmQ9MS4wMDowLjAwIG1peGVkX3JlZj0xIG1lX3JhbmdlPTE2IGNocm9tYV9tZT0xIHRyZWxsaXM9MSA4eDhkY3Q9MSBjcW09MCBkZWFkem9uZT0yMSwxMSBmYXN0X3Bza2lwPTEgY2hyb21hX3FwX29mZnNldD0tMiB0aHJlYWRzPTEgbG9va2FoZWFkX3RocmVhZHM9MSBzbGljZWRfdGhyZWFkcz0wIG5yPTAgZGVjaW1hdGU9MSBpbnRlcmxhY2VkPTAgYmx1cmF5X2NvbXBhdD0wIGNvbnN0cmFpbmVkX2ludHJhPTAgYmZyYW1lcz0zIGJfcHlyYW1pZD0yIGJfYWRhcHQ9MSBiX2JpYXM9MCBkaXJlY3Q9MSB3ZWlnaHRiPTEgb3Blbl9nb3A9MCB3ZWlnaHRwPTIga2V5aW50PTI1MCBrZXlpbnRfbWluPTI1IHNjZW5lY3V0PTQwIGludHJhX3JlZnJlc2g9MCByY19sb29rYWhlYWQ9NDAgcmM9Y3JmIG1idHJlZT0xIGNyZj0yMy4wIHFjb21wPTAuNjAgcXBtaW49MCBxcG1heD02OSBxcHN0ZXA9NCBpcF9yYXRpbz0xLjQwIGFxPTE6MS4wMACAAAAAD2WIhAA3//728P4FNjuZQQAAAu5tb292AAAAbG12aGQAAAAAAAAAAAAAAAAAAAPoAAAAZAABAAABAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAACGHRyYWsAAABcdGtoZAAAAAMAAAAAAAAAAAAAAAEAAAAAAAAAZAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAEAAAAAAAgAAAAIAAAAAACRlZHRzAAAAHGVsc3QAAAAAAAAAAQAAAGQAAAAAAAEAAAAAAZBtZGlhAAAAIG1kaGQAAAAAAAAAAAAAAAAAACgAAAAEAFXEAAAAAAAtaGRscgAAAAAAAAAAdmlkZQAAAAAAAAAAAAAAAFZpZGVvSGFuZGxlcgAAAAE7bWluZgAAABR2bWhkAAAAAQAAAAAAAAAAAAAAJGRpbmYAAAAcZHJlZgAAAAAAAAABAAAADHVybCAAAAABAAAA+3N0YmwAAACXc3RzZAAAAAAAAAABAAAAh2F2YzEAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAACAAIABEgAAABIAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY//8AAAAxYXZjQwFkAAr/4QAYZ2QACqzZX4iIhAAAAwAEAAADAFA8SJZYAQAGaOvjyyLAAAAAGHN0dHMAAAAAAAAAAQAAAAEAAAQAAAAAHHN0c2MAAAAAAAAAAQAAAAEAAAABAAAAAQAAABRzdHN6AAAAAAAAAsUAAAABAAAAFHN0Y28AAAAAAAAAAQAAADAAAABidWR0YQAAAFptZXRhAAAAAAAAACFoZGxyAAAAAAAAAABtZGlyYXBwbAAAAAAAAAAAAAAAAC1pbHN0AAAAJal0b28AAAAdZGF0YQAAAAEAAAAATGF2ZjU2LjQwLjEwMQ==" type="video/mp4">
     </video>
 
     <script>
-        // === STATE ===
         let state = {
             totalCopies: 45,
             doneCopies: 0,
@@ -753,20 +818,22 @@
             currentSprintProgress: 0,
             startTime: null,
             copyStartTime: null,
-            sprintTimes: [], // Array of arrays: [[copy1, copy2, copy3, copy4, copy5], [...], ...]
+            elapsedBeforePause: 0,
+            isPaused: false,
+            sprintTimes: [],
             currentSprintTimes: [],
             allCopyTimes: [],
+            undoStack: [],
             sessionActive: false
         };
 
         const SPRINT_SIZE = 5;
-        const PAUSE_SECONDS = 120; // 2 minutes
+        const BREAK_SECONDS = 120;
 
         let copyChronoInterval = null;
-        let pauseInterval = null;
-        let pauseSecondsLeft = PAUSE_SECONDS;
+        let breakInterval = null;
+        let breakSecondsLeft = BREAK_SECONDS;
 
-        // === MOTIVATION QUOTES ===
         const quotes = [
             "Une copie à la fois. Tu avances.",
             "Chaque copie terminée est une victoire.",
@@ -785,36 +852,37 @@
             "Finis ce que tu as commencé."
         ];
 
-        // === NO SLEEP (keep screen awake) ===
         function enableNoSleep() {
-            const video = document.getElementById('noSleepVideo');
-            video.play().catch(() => {});
+            document.getElementById('noSleepVideo').play().catch(() => {});
         }
 
         function disableNoSleep() {
-            const video = document.getElementById('noSleepVideo');
-            video.pause();
+            document.getElementById('noSleepVideo').pause();
         }
 
-        // === COPY CHRONO ===
         function startCopyChrono() {
             state.copyStartTime = Date.now();
+            state.elapsedBeforePause = 0;
+            state.isPaused = false;
+            updatePauseButton();
+            updateChronoStyle();
             updateCopyChronoDisplay();
             copyChronoInterval = setInterval(updateCopyChronoDisplay, 1000);
         }
 
+        function getCurrentElapsed() {
+            if (state.isPaused) return state.elapsedBeforePause;
+            if (!state.copyStartTime) return 0;
+            return state.elapsedBeforePause + Math.floor((Date.now() - state.copyStartTime) / 1000);
+        }
+
         function stopCopyChrono() {
             clearInterval(copyChronoInterval);
-            if (state.copyStartTime) {
-                return Math.floor((Date.now() - state.copyStartTime) / 1000);
-            }
-            return 0;
+            return getCurrentElapsed();
         }
 
         function updateCopyChronoDisplay() {
-            if (!state.copyStartTime) return;
-            const elapsed = Math.floor((Date.now() - state.copyStartTime) / 1000);
-            document.getElementById('copyChronoTime').textContent = formatTime(elapsed);
+            document.getElementById('copyChronoTime').textContent = formatTime(getCurrentElapsed());
         }
 
         function formatTime(seconds) {
@@ -823,7 +891,74 @@
             return `${mins}:${secs.toString().padStart(2, '0')}`;
         }
 
-        // === SESSION MANAGEMENT ===
+        function togglePause() {
+            if (state.isPaused) {
+                state.copyStartTime = Date.now();
+                state.isPaused = false;
+                copyChronoInterval = setInterval(updateCopyChronoDisplay, 1000);
+                document.getElementById('doneBtn').disabled = false;
+            } else {
+                state.elapsedBeforePause = getCurrentElapsed();
+                state.isPaused = true;
+                clearInterval(copyChronoInterval);
+                document.getElementById('doneBtn').disabled = true;
+            }
+            updatePauseButton();
+            updateChronoStyle();
+        }
+
+        function updatePauseButton() {
+            const btn = document.getElementById('pauseBtn');
+            if (state.isPaused) {
+                btn.textContent = '▶ Reprendre';
+                btn.classList.add('is-paused');
+            } else {
+                btn.textContent = '⏸ Pause';
+                btn.classList.remove('is-paused');
+            }
+        }
+
+        function updateChronoStyle() {
+            const box = document.getElementById('copyChronoBox');
+            const label = document.getElementById('copyChronoLabel');
+            if (state.isPaused) {
+                box.classList.add('paused');
+                label.textContent = '⏸ EN PAUSE';
+            } else {
+                box.classList.remove('paused');
+                label.textContent = '⏱ Temps copie en cours';
+            }
+        }
+
+        function undoLastCopy() {
+            if (state.undoStack.length === 0) return;
+
+            const lastState = state.undoStack.pop();
+            state.doneCopies = lastState.doneCopies;
+            state.currentSprintProgress = lastState.currentSprintProgress;
+            state.currentSprintTimes = lastState.currentSprintTimes;
+            state.allCopyTimes = lastState.allCopyTimes;
+            state.sprintsCompleted = lastState.sprintsCompleted;
+            state.sprintTimes = lastState.sprintTimes;
+
+            clearInterval(copyChronoInterval);
+            state.elapsedBeforePause = lastState.copyTime;
+            state.copyStartTime = Date.now();
+            state.isPaused = false;
+            copyChronoInterval = setInterval(updateCopyChronoDisplay, 1000);
+
+            updateUI();
+            updateUndoButton();
+            updatePauseButton();
+            updateChronoStyle();
+            document.getElementById('doneBtn').disabled = false;
+            vibrate();
+        }
+
+        function updateUndoButton() {
+            document.getElementById('undoBtn').disabled = state.undoStack.length === 0;
+        }
+
         function startSession() {
             const total = parseInt(document.getElementById('totalCopies').value) || 45;
             state = {
@@ -833,46 +968,58 @@
                 currentSprintProgress: 0,
                 startTime: new Date(),
                 copyStartTime: null,
+                elapsedBeforePause: 0,
+                isPaused: false,
                 sprintTimes: [],
                 currentSprintTimes: [],
                 allCopyTimes: [],
+                undoStack: [],
                 sessionActive: true
             };
 
             document.getElementById('totalCount').textContent = total;
             document.getElementById('setupScreen').classList.add('hidden');
             document.getElementById('mainScreen').classList.add('active');
+            document.getElementById('doneBtn').disabled = false;
 
-            updateProgress();
-            updateSprintDots();
+            updateUI();
+            updateUndoButton();
             startCopyChrono();
             enableNoSleep();
         }
 
         function markDone() {
-            if (state.doneCopies >= state.totalCopies) return;
+            if (state.doneCopies >= state.totalCopies || state.isPaused) return;
 
-            // Record time for this copy
             const copyTime = stopCopyChrono();
+
+            state.undoStack.push({
+                doneCopies: state.doneCopies,
+                currentSprintProgress: state.currentSprintProgress,
+                currentSprintTimes: [...state.currentSprintTimes],
+                allCopyTimes: [...state.allCopyTimes],
+                sprintsCompleted: state.sprintsCompleted,
+                sprintTimes: state.sprintTimes.map(s => [...s]),
+                copyTime: copyTime
+            });
+
+            if (state.undoStack.length > 10) state.undoStack.shift();
+
             state.currentSprintTimes.push(copyTime);
             state.allCopyTimes.push(copyTime);
-
             state.doneCopies++;
             state.currentSprintProgress++;
 
             vibrate();
             updateQuote();
-            updateProgress();
-            updateSprintDots();
-            updateAvgTime();
+            updateUI();
+            updateUndoButton();
 
-            // Check for sprint completion
             if (state.currentSprintProgress >= SPRINT_SIZE) {
                 completeSprint();
             } else if (state.doneCopies >= state.totalCopies) {
                 finishSession();
             } else {
-                // Start chrono for next copy
                 startCopyChrono();
             }
         }
@@ -881,26 +1028,22 @@
             state.sprintsCompleted++;
             state.sprintTimes.push([...state.currentSprintTimes]);
 
-            // Check if session is complete
             if (state.doneCopies >= state.totalCopies) {
                 finishSession();
                 return;
             }
 
-            // Show sprint recap
             showSprintRecap();
             spawnConfetti();
         }
 
         function showSprintRecap() {
-            const modal = document.getElementById('sprintRecapModal');
             const title = document.getElementById('sprintRecapTitle');
             const timesDiv = document.getElementById('sprintRecapTimes');
             const compDiv = document.getElementById('sprintComparison');
 
             title.textContent = `Sprint ${state.sprintsCompleted} terminé !`;
 
-            // Build times list
             let timesHTML = '';
             let total = 0;
             state.currentSprintTimes.forEach((t, i) => {
@@ -912,15 +1055,12 @@
             timesHTML += `<div class="sprint-recap-row"><span>Moyenne</span><span>${formatTime(avg)}/copie</span></div>`;
             timesDiv.innerHTML = timesHTML;
 
-            // Comparison with previous sprint
             if (state.sprintTimes.length > 1) {
                 const prevTotal = state.sprintTimes[state.sprintTimes.length - 2].reduce((a, b) => a + b, 0);
                 const diff = total - prevTotal;
                 const diffAbs = Math.abs(diff);
 
-                let compHTML = `<div style="font-size:0.85rem;color:#888;">vs Sprint ${state.sprintsCompleted - 1}</div>`;
-                compHTML += `<div class="sprint-comparison-bar">`;
-
+                let compHTML = `<div style="font-size:0.85rem;color:#888;">vs Sprint ${state.sprintsCompleted - 1}</div><div class="sprint-comparison-bar">`;
                 if (diff < -5) {
                     compHTML += `<span class="comparison-indicator faster">⚡ ${formatTime(diffAbs)} plus rapide</span>`;
                 } else if (diff > 5) {
@@ -935,7 +1075,7 @@
                 compDiv.style.display = 'none';
             }
 
-            modal.classList.add('show');
+            document.getElementById('sprintRecapModal').classList.add('show');
         }
 
         function continueAfterSprint() {
@@ -947,33 +1087,27 @@
             startCopyChrono();
         }
 
-        function startPause() {
+        function startBreak() {
             document.getElementById('sprintRecapModal').classList.remove('show');
-            document.getElementById('pauseModal').classList.add('show');
-
-            pauseSecondsLeft = PAUSE_SECONDS;
-            updatePauseTimer();
-
-            pauseInterval = setInterval(() => {
-                pauseSecondsLeft--;
-                updatePauseTimer();
-                if (pauseSecondsLeft <= 0) {
-                    endPause();
-                }
+            document.getElementById('breakModal').classList.add('show');
+            breakSecondsLeft = BREAK_SECONDS;
+            updateBreakTimer();
+            breakInterval = setInterval(() => {
+                breakSecondsLeft--;
+                updateBreakTimer();
+                if (breakSecondsLeft <= 0) endBreak();
             }, 1000);
         }
 
-        function updatePauseTimer() {
-            document.getElementById('pauseTimer').textContent = formatTime(pauseSecondsLeft);
+        function updateBreakTimer() {
+            document.getElementById('breakTimer').textContent = formatTime(breakSecondsLeft);
         }
 
-        function skipPause() {
-            endPause();
-        }
+        function skipBreak() { endBreak(); }
 
-        function endPause() {
-            clearInterval(pauseInterval);
-            document.getElementById('pauseModal').classList.remove('show');
+        function endBreak() {
+            clearInterval(breakInterval);
+            document.getElementById('breakModal').classList.remove('show');
             vibrate();
             continueAfterSprint();
         }
@@ -981,70 +1115,64 @@
         function finishSession() {
             state.sessionActive = false;
             disableNoSleep();
+            clearInterval(copyChronoInterval);
 
             const duration = state.startTime ? Math.round((new Date() - state.startTime) / 60000) : 0;
             const totalTime = state.allCopyTimes.reduce((a, b) => a + b, 0);
             const avgTime = state.allCopyTimes.length > 0 ? Math.floor(totalTime / state.allCopyTimes.length) : 0;
 
-            let statsText = `${state.totalCopies} copies en ${duration} min\n`;
-            statsText += `Temps moyen : ${formatTime(avgTime)}/copie`;
+            document.getElementById('finishStats').textContent = `${state.totalCopies} copies en ${duration} min\nTemps moyen : ${formatTime(avgTime)}/copie`;
 
-            document.getElementById('finishStats').textContent = statsText;
-
-            // Build sprint comparison bars
             const sprintsDiv = document.getElementById('finishSprints');
             if (state.sprintTimes.length > 0) {
                 const maxTotal = Math.max(...state.sprintTimes.map(s => s.reduce((a, b) => a + b, 0)));
-                let sprintsHTML = '';
+                let html = '';
                 state.sprintTimes.forEach((sprint, i) => {
                     const total = sprint.reduce((a, b) => a + b, 0);
                     const pct = Math.round((total / maxTotal) * 100);
                     const color = i === 0 ? '#3498db' : (total < state.sprintTimes[i-1].reduce((a,b)=>a+b,0) ? '#2ecc71' : '#e74c3c');
-                    sprintsHTML += `
-                        <div class="finish-sprint-row">
-                            <span style="width:60px;">Sprint ${i + 1}</span>
-                            <div class="finish-sprint-bar">
-                                <div class="finish-sprint-bar-fill" style="width:${pct}%;background:${color};"></div>
-                            </div>
-                            <span style="width:50px;text-align:right;">${formatTime(total)}</span>
-                        </div>
-                    `;
+                    html += `<div class="finish-sprint-row"><span style="width:60px;">Sprint ${i + 1}</span><div class="finish-sprint-bar"><div class="finish-sprint-bar-fill" style="width:${pct}%;background:${color};"></div></div><span style="width:50px;text-align:right;">${formatTime(total)}</span></div>`;
                 });
-                sprintsDiv.innerHTML = sprintsHTML;
+                sprintsDiv.innerHTML = html;
+            } else {
+                sprintsDiv.innerHTML = '';
             }
 
             document.getElementById('mainScreen').classList.remove('active');
             document.getElementById('finishScreen').classList.add('active');
-
             spawnConfetti();
             spawnConfetti();
         }
 
         function confirmReset() {
-            if (state.doneCopies > 0) {
-                if (confirm('Tu as ' + state.doneCopies + ' copies de faites. Vraiment recommencer ?')) {
-                    resetSession();
-                }
-            } else {
-                resetSession();
-            }
+            if (state.doneCopies > 0 && !confirm('Tu as ' + state.doneCopies + ' copies de faites. Vraiment recommencer ?')) return;
+            newSession();
         }
 
-        function resetSession() {
+        function newSession() {
             clearInterval(copyChronoInterval);
-            clearInterval(pauseInterval);
+            clearInterval(breakInterval);
             disableNoSleep();
 
             document.getElementById('setupScreen').classList.remove('hidden');
             document.getElementById('mainScreen').classList.remove('active');
             document.getElementById('finishScreen').classList.remove('active');
             document.getElementById('sprintRecapModal').classList.remove('show');
-            document.getElementById('pauseModal').classList.remove('show');
+            document.getElementById('breakModal').classList.remove('show');
             document.getElementById('copyChronoTime').textContent = '0:00';
             document.getElementById('currentSprintNum').textContent = '1';
+            document.getElementById('copyChronoBox').classList.remove('paused');
+            document.getElementById('copyChronoLabel').textContent = '⏱ Temps copie en cours';
+
+            state = { totalCopies: 45, doneCopies: 0, sprintsCompleted: 0, currentSprintProgress: 0, startTime: null, copyStartTime: null, elapsedBeforePause: 0, isPaused: false, sprintTimes: [], currentSprintTimes: [], allCopyTimes: [], undoStack: [], sessionActive: false };
         }
 
-        // === UI UPDATES ===
+        function updateUI() {
+            updateProgress();
+            updateSprintDots();
+            updateAvgTime();
+        }
+
         function updateProgress() {
             const percent = Math.round((state.doneCopies / state.totalCopies) * 100);
             document.getElementById('doneCount').textContent = state.doneCopies;
@@ -1058,15 +1186,12 @@
                 const dot = document.getElementById('dot' + i);
                 if (i < state.currentSprintProgress) {
                     dot.classList.add('done');
-                    // Show time for completed copy
-                    const time = state.currentSprintTimes[i];
-                    dot.textContent = time ? formatTime(time) : '✓';
+                    dot.textContent = state.currentSprintTimes[i] ? formatTime(state.currentSprintTimes[i]) : '✓';
                 } else {
                     dot.classList.remove('done');
                     dot.textContent = '-';
                 }
             }
-
             const remaining = SPRINT_SIZE - state.currentSprintProgress;
             document.getElementById('sprintMessage').textContent = `${remaining} copie${remaining > 1 ? 's' : ''} pour terminer ce sprint`;
         }
@@ -1076,37 +1201,30 @@
                 document.getElementById('avgTime').textContent = '-';
                 return;
             }
-            const total = state.allCopyTimes.reduce((a, b) => a + b, 0);
-            const avg = Math.floor(total / state.allCopyTimes.length);
+            const avg = Math.floor(state.allCopyTimes.reduce((a, b) => a + b, 0) / state.allCopyTimes.length);
             document.getElementById('avgTime').textContent = formatTime(avg);
         }
 
         function updateQuote() {
-            const quote = quotes[Math.floor(Math.random() * quotes.length)];
-            document.getElementById('motivationQuote').textContent = quote;
+            document.getElementById('motivationQuote').textContent = quotes[Math.floor(Math.random() * quotes.length)];
         }
 
-        // === CONFETTI ===
         function spawnConfetti() {
             const container = document.getElementById('confettiContainer');
             const colors = ['#e74c3c', '#f39c12', '#2ecc71', '#3498db', '#9b59b6', '#e91e63'];
-
             for (let i = 0; i < 40; i++) {
-                const confetti = document.createElement('div');
-                confetti.className = 'confetti';
-                confetti.style.left = Math.random() * 100 + '%';
-                confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-                confetti.style.animationDelay = Math.random() * 0.5 + 's';
-                container.appendChild(confetti);
-                setTimeout(() => confetti.remove(), 4000);
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + '%';
+                c.style.background = colors[Math.floor(Math.random() * colors.length)];
+                c.style.animationDelay = Math.random() * 0.5 + 's';
+                container.appendChild(c);
+                setTimeout(() => c.remove(), 4000);
             }
         }
 
-        // === VIBRATION ===
         function vibrate() {
-            if ('vibrate' in navigator) {
-                navigator.vibrate(50);
-            }
+            if ('vibrate' in navigator) navigator.vibrate(50);
         }
     </script>
 </body>
