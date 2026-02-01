@@ -803,6 +803,10 @@
                         </div>
                     </div>
                     <div class="setup-field">
+                        <div class="setup-field-label">Classe</div>
+                        <input type="text" class="setup-field-input" id="evalClasse" placeholder="ex: 6ème A, 5ème 3...">
+                    </div>
+                    <div class="setup-field">
                         <div class="setup-field-label">Thème (optionnel)</div>
                         <input type="text" class="setup-field-input" id="evalTheme" placeholder="ex: Géométrie, Calcul littéral...">
                     </div>
@@ -943,6 +947,7 @@
             endTime: null,
             evalName: '',
             evalLevel: '',
+            evalClasse: '',
             evalTheme: '',
             evalType: '',
             copyStartTime: null,
@@ -1160,6 +1165,7 @@
                 sessionActive: true,
                 evalName: document.getElementById('evalName').value.trim(),
                 evalLevel: selectedLevel,
+                evalClasse: document.getElementById('evalClasse').value.trim(),
                 evalTheme: document.getElementById('evalTheme').value.trim(),
                 evalType: selectedType
             };
@@ -1310,9 +1316,9 @@
             const avgTime = state.allCopyTimes.length > 0 ? Math.floor(totalTime / state.allCopyTimes.length) : 0;
 
             const evalNameEl = document.getElementById('finishEvalName');
-            if (state.evalName) {
-                let label = state.evalName;
-                if (state.evalLevel) label += ` (${state.evalLevel})`;
+            if (state.evalName || state.evalClasse) {
+                let label = state.evalName || '';
+                if (state.evalClasse) label += (label ? ' - ' : '') + state.evalClasse;
                 evalNameEl.textContent = label;
             } else {
                 evalNameEl.textContent = '';
@@ -1361,9 +1367,10 @@
             document.getElementById('copyChronoBox').classList.remove('paused');
             document.getElementById('copyChronoLabel').textContent = '⏱ Temps copie en cours';
 
-            state = { totalCopies: 0, doneCopies: 0, sprintsCompleted: 0, currentSprintProgress: 0, startTime: null, endTime: null, copyStartTime: null, elapsedBeforePause: 0, isPaused: false, sprintTimes: [], currentSprintTimes: [], allCopyTimes: [], undoStack: [], sessionActive: false, evalName: '', evalLevel: '', evalTheme: '', evalType: '' };
+            state = { totalCopies: 0, doneCopies: 0, sprintsCompleted: 0, currentSprintProgress: 0, startTime: null, endTime: null, copyStartTime: null, elapsedBeforePause: 0, isPaused: false, sprintTimes: [], currentSprintTimes: [], allCopyTimes: [], undoStack: [], sessionActive: false, evalName: '', evalLevel: '', evalClasse: '', evalTheme: '', evalType: '' };
             document.getElementById('totalCopies').value = '';
             document.getElementById('evalName').value = '';
+            document.getElementById('evalClasse').value = '';
             document.getElementById('evalTheme').value = '';
             document.getElementById('setupEncouragement').textContent = '';
             document.querySelectorAll('.setup-chip').forEach(c => c.classList.remove('selected'));
@@ -1460,6 +1467,7 @@
                 evaluation: {
                     name: state.evalName || null,
                     level: state.evalLevel || null,
+                    classe: state.evalClasse || null,
                     theme: state.evalTheme || null,
                     type: state.evalType || null
                 },
