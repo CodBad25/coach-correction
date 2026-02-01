@@ -307,6 +307,13 @@
             color: #888;
         }
 
+        .student-modal-hint {
+            font-size: 0.7rem;
+            color: #e74c3c;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
         .student-search-input {
             width: 100%;
             padding: 15px;
@@ -343,6 +350,26 @@
         .student-item.done {
             opacity: 0.4;
             text-decoration: line-through;
+        }
+
+        .student-item.pressing {
+            background: rgba(231, 76, 60, 0.3);
+            border-color: #e74c3c;
+            transform: scale(0.98);
+        }
+
+        .student-item.removing {
+            animation: removeStudent 0.3s ease-out forwards;
+        }
+
+        @keyframes removeStudent {
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+                height: 0;
+                padding: 0;
+                margin: 0;
+            }
         }
 
         .student-name {
@@ -1191,6 +1218,7 @@
         <div class="student-modal-header">
             <div class="student-modal-title">📝 Copie de qui ?</div>
             <div class="student-modal-subtitle">Tape le nom ou prénom</div>
+            <div class="student-modal-hint">Appui long = retirer (absent)</div>
         </div>
         <input type="text" class="student-search-input" id="studentSearch" placeholder="Rechercher..." oninput="filterStudents()">
         <div class="student-list" id="studentList"></div>
@@ -1433,22 +1461,94 @@
                 </div>`;
             }).join('');
 
-            // Attach click handlers properly
+            // Attach click and long-press handlers
             list.querySelectorAll('.student-item').forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    if (!modalClicksEnabled) return; // Ignore clicks during modal opening
-                    const idx = parseInt(this.dataset.index);
-                    const student = filteredStudents[idx];
-                    if (student) {
-                        selectStudent(student.nom, student.prenom, student.classe);
+                let pressTimer = null;
+                let isLongPress = false;
+
+                const startPress = (e) => {
+                    isLongPress = false;
+                    item.classList.add('pressing');
+                    pressTimer = setTimeout(() => {
+                        isLongPress = true;
+                        item.classList.remove('pressing');
+                        const idx = parseInt(item.dataset.index);
+                        const student = filteredStudents[idx];
+                        if (student) {
+                            removeStudent(student, item);
+                        }
+                    }, 600);
+                };
+
+                const endPress = (e) => {
+                    item.classList.remove('pressing');
+                    if (pressTimer) {
+                        clearTimeout(pressTimer);
+                        pressTimer = null;
                     }
-                });
+                    if (!isLongPress && modalClicksEnabled) {
+                        const idx = parseInt(item.dataset.index);
+                        const student = filteredStudents[idx];
+                        if (student) {
+                            selectStudent(student.nom, student.prenom, student.classe);
+                        }
+                    }
+                };
+
+                const cancelPress = () => {
+                    item.classList.remove('pressing');
+                    if (pressTimer) {
+                        clearTimeout(pressTimer);
+                        pressTimer = null;
+                    }
+                };
+
+                // Touch events for mobile
+                item.addEventListener('touchstart', startPress, { passive: true });
+                item.addEventListener('touchend', endPress);
+                item.addEventListener('touchcancel', cancelPress);
+                item.addEventListener('touchmove', cancelPress, { passive: true });
+
+                // Mouse events for desktop
+                item.addEventListener('mousedown', startPress);
+                item.addEventListener('mouseup', endPress);
+                item.addEventListener('mouseleave', cancelPress);
             });
 
             if (filteredStudents.length === 0 && query.length >= 2) {
                 list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Aucun élève trouvé</div>';
             }
+        }
+
+        function removeStudent(student, itemElement) {
+            // Animation de suppression
+            itemElement.classList.add('removing');
+
+            // Vibration feedback sur mobile
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+
+            setTimeout(() => {
+                // Supprimer de la liste
+                students = students.filter(s =>
+                    !(s.nom === student.nom && s.prenom === student.prenom)
+                );
+
+                // Mettre à jour le bouton CSV
+                const csvBtn = document.getElementById('csvUploadBtn');
+                if (students.length > 0) {
+                    csvBtn.innerHTML = `<input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">✅ ${students.length} élèves`;
+                } else {
+                    csvBtn.classList.remove('loaded');
+                    csvBtn.innerHTML = `<input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">📋 Importer liste`;
+                }
+
+                // Sauvegarder et rafraîchir
+                saveSettings();
+                const query = document.getElementById('studentSearch').value.trim().toLowerCase();
+                renderStudentList(query);
+            }, 300);
         }
 
         function selectStudent(nom, prenom, classe) {
