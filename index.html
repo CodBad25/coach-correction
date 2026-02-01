@@ -519,6 +519,20 @@
             font-size: 1.1rem;
             font-weight: bold;
             color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .current-student:active {
+            transform: scale(0.98);
+        }
+
+        .current-student-edit {
+            font-size: 0.9rem;
+            opacity: 0.7;
         }
 
         .copy-chrono {
@@ -1094,8 +1108,9 @@
         </div>
 
         <!-- CURRENT STUDENT -->
-        <div class="current-student" id="currentStudentBox" style="display:none;">
+        <div class="current-student" id="currentStudentBox" style="display:none;" onclick="changeStudent()">
             <span id="currentStudentName"></span>
+            <span class="current-student-edit">✏️</span>
         </div>
 
         <!-- COPY CHRONO -->
@@ -1376,25 +1391,42 @@
             document.getElementById('studentModal').classList.remove('show');
             currentStudent = { nom, prenom, classe };
             updateCurrentStudentDisplay();
-            startCopyChrono();
+            if (!isChangingStudent) {
+                startCopyChrono();
+            }
+            isChangingStudent = false;
         }
 
         function skipStudentSelection() {
             document.getElementById('studentModal').classList.remove('show');
             currentStudent = null;
             updateCurrentStudentDisplay();
-            startCopyChrono();
+            if (!isChangingStudent) {
+                startCopyChrono();
+            }
+            isChangingStudent = false;
         }
 
         function updateCurrentStudentDisplay() {
             const box = document.getElementById('currentStudentBox');
             const name = document.getElementById('currentStudentName');
             if (currentStudent && students.length > 0) {
-                box.style.display = 'block';
+                box.style.display = 'flex';
                 name.textContent = `${currentStudent.prenom} ${currentStudent.nom}`;
+            } else if (students.length > 0) {
+                box.style.display = 'flex';
+                name.textContent = 'Élève non sélectionné';
             } else {
                 box.style.display = 'none';
             }
+        }
+
+        let isChangingStudent = false;
+
+        function changeStudent() {
+            if (students.length === 0) return;
+            isChangingStudent = true;
+            showStudentModal();
         }
 
         function enableNoSleep() {
