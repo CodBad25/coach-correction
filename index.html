@@ -172,6 +172,125 @@
             color: white;
         }
 
+        .csv-upload-btn {
+            display: inline-block;
+            padding: 12px 20px;
+            font-size: 0.9rem;
+            border: 2px dashed rgba(255,255,255,0.3);
+            border-radius: 10px;
+            background: transparent;
+            color: #ccc;
+            cursor: pointer;
+            text-align: center;
+            width: 100%;
+        }
+
+        .csv-upload-btn:hover { border-color: #9b59b6; color: #9b59b6; }
+
+        .csv-upload-btn.loaded {
+            border-style: solid;
+            border-color: #2ecc71;
+            color: #2ecc71;
+        }
+
+        .csv-status {
+            font-size: 0.8rem;
+            color: #2ecc71;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        /* === STUDENT SEARCH MODAL === */
+        .student-modal {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: none;
+            flex-direction: column;
+            z-index: 1002;
+            padding: 20px;
+        }
+
+        .student-modal.show { display: flex; }
+
+        .student-modal-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .student-modal-title {
+            font-size: 1.2rem;
+            color: #9b59b6;
+            margin-bottom: 5px;
+        }
+
+        .student-modal-subtitle {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .student-search-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            border: 3px solid #3498db;
+            border-radius: 12px;
+            background: rgba(52, 152, 219, 0.1);
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        .student-search-input:focus { outline: none; border-color: #9b59b6; }
+
+        .student-list {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .student-item {
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .student-item:hover, .student-item:active {
+            border-color: #9b59b6;
+            background: rgba(155, 89, 182, 0.2);
+        }
+
+        .student-item.done {
+            opacity: 0.4;
+            text-decoration: line-through;
+        }
+
+        .student-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .student-info {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 3px;
+        }
+
+        .student-skip-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1rem;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 12px;
+            background: transparent;
+            color: #888;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
         .start-btn {
             width: 100%;
             padding: 20px;
@@ -819,6 +938,14 @@
                             <button type="button" class="setup-chip" data-value="autre" onclick="selectChip(this, 'type')">Autre</button>
                         </div>
                     </div>
+                    <div class="setup-field">
+                        <div class="setup-field-label">Liste élèves (CSV)</div>
+                        <label class="csv-upload-btn" id="csvUploadBtn">
+                            <input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">
+                            📋 Importer CSV
+                        </label>
+                        <div class="csv-status" id="csvStatus"></div>
+                    </div>
                 </div>
             </div>
 
@@ -929,6 +1056,17 @@
         </div>
     </div>
 
+    <!-- STUDENT SEARCH MODAL -->
+    <div class="student-modal" id="studentModal">
+        <div class="student-modal-header">
+            <div class="student-modal-title">📝 Copie de qui ?</div>
+            <div class="student-modal-subtitle">Tape le nom ou prénom</div>
+        </div>
+        <input type="text" class="student-search-input" id="studentSearch" placeholder="Rechercher..." oninput="filterStudents()">
+        <div class="student-list" id="studentList"></div>
+        <button class="student-skip-btn" onclick="skipStudentSelection()">Passer (élève inconnu)</button>
+    </div>
+
     <!-- CONFETTI -->
     <div class="confetti-container" id="confettiContainer"></div>
 
@@ -957,13 +1095,16 @@
             currentSprintTimes: [],
             allCopyTimes: [],
             undoStack: [],
-            sessionActive: false
+            sessionActive: false,
+            correctedStudents: []
         };
 
         const SPRINT_SIZE = 5;
         const BREAK_SECONDS = 120;
 
         let copyChronoInterval = null;
+        let students = [];
+        let pendingCopyTime = 0;
         let breakInterval = null;
         let breakSecondsLeft = BREAK_SECONDS;
 
@@ -1028,6 +1169,97 @@
             chip.classList.add('selected');
             if (type === 'level') selectedLevel = chip.dataset.value;
             if (type === 'type') selectedType = chip.dataset.value;
+        }
+
+        function handleCSV(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                parseCSV(text);
+            };
+            reader.readAsText(file, 'UTF-8');
+        }
+
+        function parseCSV(text) {
+            const lines = text.split(/\r?\n/).filter(l => l.trim());
+            if (lines.length < 2) return;
+
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            const nomIdx = headers.findIndex(h => h === 'nom');
+            const prenomIdx = headers.findIndex(h => h === 'prénom' || h === 'prenom');
+            const classeIdx = headers.findIndex(h => h === 'classe');
+
+            if (nomIdx === -1 || prenomIdx === -1) {
+                alert('CSV invalide: colonnes Nom et Prénom requises');
+                return;
+            }
+
+            students = [];
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].split(',').map(c => c.trim());
+                if (cols[nomIdx] && cols[prenomIdx]) {
+                    students.push({
+                        nom: cols[nomIdx],
+                        prenom: cols[prenomIdx],
+                        classe: classeIdx !== -1 ? cols[classeIdx] : ''
+                    });
+                }
+            }
+
+            students.sort((a, b) => a.nom.localeCompare(b.nom));
+
+            document.getElementById('csvUploadBtn').classList.add('loaded');
+            document.getElementById('csvUploadBtn').innerHTML = `<input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">✅ ${students.length} élèves`;
+            document.getElementById('csvStatus').textContent = '';
+        }
+
+        function showStudentModal() {
+            document.getElementById('studentSearch').value = '';
+            renderStudentList('');
+            document.getElementById('studentModal').classList.add('show');
+            setTimeout(() => document.getElementById('studentSearch').focus(), 100);
+        }
+
+        function filterStudents() {
+            const query = document.getElementById('studentSearch').value.trim().toLowerCase();
+            renderStudentList(query);
+        }
+
+        function renderStudentList(query) {
+            const list = document.getElementById('studentList');
+            const correctedNames = state.correctedStudents.map(s => `${s.nom}|${s.prenom}`);
+
+            let filtered = students;
+            if (query.length >= 2) {
+                filtered = students.filter(s =>
+                    s.nom.toLowerCase().includes(query) ||
+                    s.prenom.toLowerCase().includes(query)
+                );
+            }
+
+            list.innerHTML = filtered.slice(0, 20).map(s => {
+                const isDone = correctedNames.includes(`${s.nom}|${s.prenom}`);
+                return `<div class="student-item ${isDone ? 'done' : ''}" onclick="selectStudent('${s.nom.replace(/'/g, "\\'")}', '${s.prenom.replace(/'/g, "\\'")}', '${s.classe.replace(/'/g, "\\'")}')">
+                    <div class="student-name">${s.prenom} ${s.nom}</div>
+                    ${s.classe ? `<div class="student-info">${s.classe}</div>` : ''}
+                </div>`;
+            }).join('');
+
+            if (filtered.length === 0 && query.length >= 2) {
+                list.innerHTML = '<div style="text-align:center;color:#888;padding:20px;">Aucun élève trouvé</div>';
+            }
+        }
+
+        function selectStudent(nom, prenom, classe) {
+            document.getElementById('studentModal').classList.remove('show');
+            finalizeCopy({ nom, prenom, classe });
+        }
+
+        function skipStudentSelection() {
+            document.getElementById('studentModal').classList.remove('show');
+            finalizeCopy(null);
         }
 
         function enableNoSleep() {
@@ -1118,6 +1350,7 @@
             state.allCopyTimes = lastState.allCopyTimes;
             state.sprintsCompleted = lastState.sprintsCompleted;
             state.sprintTimes = lastState.sprintTimes;
+            if (lastState.correctedStudents) state.correctedStudents = lastState.correctedStudents;
 
             clearInterval(copyChronoInterval);
             state.elapsedBeforePause = lastState.copyTime;
@@ -1167,7 +1400,8 @@
                 evalLevel: selectedLevel,
                 evalClasse: document.getElementById('evalClasse').value.trim(),
                 evalTheme: document.getElementById('evalTheme').value.trim(),
-                evalType: selectedType
+                evalType: selectedType,
+                correctedStudents: []
             };
 
             document.getElementById('totalCount').textContent = total;
@@ -1184,7 +1418,17 @@
         function markDone() {
             if (state.doneCopies >= state.totalCopies || state.isPaused) return;
 
-            const copyTime = stopCopyChrono();
+            pendingCopyTime = stopCopyChrono();
+
+            if (students.length > 0) {
+                showStudentModal();
+            } else {
+                finalizeCopy(null);
+            }
+        }
+
+        function finalizeCopy(student) {
+            const copyTime = pendingCopyTime;
 
             state.undoStack.push({
                 doneCopies: state.doneCopies,
@@ -1193,13 +1437,21 @@
                 allCopyTimes: [...state.allCopyTimes],
                 sprintsCompleted: state.sprintsCompleted,
                 sprintTimes: state.sprintTimes.map(s => [...s]),
-                copyTime: copyTime
+                copyTime: copyTime,
+                correctedStudents: [...state.correctedStudents]
             });
 
             if (state.undoStack.length > 10) state.undoStack.shift();
 
             state.currentSprintTimes.push(copyTime);
             state.allCopyTimes.push(copyTime);
+            state.correctedStudents.push({
+                nom: student ? student.nom : null,
+                prenom: student ? student.prenom : null,
+                classe: student ? student.classe : null,
+                timeSeconds: copyTime,
+                copyNumber: state.doneCopies + 1
+            });
             state.doneCopies++;
             state.currentSprintProgress++;
 
@@ -1367,7 +1619,7 @@
             document.getElementById('copyChronoBox').classList.remove('paused');
             document.getElementById('copyChronoLabel').textContent = '⏱ Temps copie en cours';
 
-            state = { totalCopies: 0, doneCopies: 0, sprintsCompleted: 0, currentSprintProgress: 0, startTime: null, endTime: null, copyStartTime: null, elapsedBeforePause: 0, isPaused: false, sprintTimes: [], currentSprintTimes: [], allCopyTimes: [], undoStack: [], sessionActive: false, evalName: '', evalLevel: '', evalClasse: '', evalTheme: '', evalType: '' };
+            state = { totalCopies: 0, doneCopies: 0, sprintsCompleted: 0, currentSprintProgress: 0, startTime: null, endTime: null, copyStartTime: null, elapsedBeforePause: 0, isPaused: false, sprintTimes: [], currentSprintTimes: [], allCopyTimes: [], undoStack: [], sessionActive: false, evalName: '', evalLevel: '', evalClasse: '', evalTheme: '', evalType: '', correctedStudents: [] };
             document.getElementById('totalCopies').value = '';
             document.getElementById('evalName').value = '';
             document.getElementById('evalClasse').value = '';
@@ -1376,6 +1628,10 @@
             document.querySelectorAll('.setup-chip').forEach(c => c.classList.remove('selected'));
             selectedLevel = '';
             selectedType = '';
+            students = [];
+            document.getElementById('csvUploadBtn').classList.remove('loaded');
+            document.getElementById('csvUploadBtn').innerHTML = '<input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">📋 Importer CSV';
+            document.getElementById('csvStatus').textContent = '';
             document.getElementById('optionalFields').classList.remove('show');
             document.getElementById('optionalArrow').textContent = '▶';
         }
@@ -1485,7 +1741,8 @@
                 },
                 details: {
                     allCopyTimes: state.allCopyTimes,
-                    sprintTimes: state.sprintTimes
+                    sprintTimes: state.sprintTimes,
+                    students: state.correctedStudents
                 }
             };
 
