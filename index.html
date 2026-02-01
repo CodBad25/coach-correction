@@ -473,6 +473,20 @@
         }
 
         /* === COPY CHRONO === */
+        /* Current student display */
+        .current-student {
+            background: linear-gradient(135deg, rgba(155, 89, 182, 0.3), rgba(142, 68, 173, 0.3));
+            border: 2px solid #9b59b6;
+            border-radius: 10px;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            width: 100%;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: white;
+        }
+
         .copy-chrono {
             background: rgba(52, 152, 219, 0.2);
             border: 2px solid #3498db;
@@ -1044,6 +1058,11 @@
             <p class="sprint-message" id="sprintMessage">5 copies pour terminer ce sprint</p>
         </div>
 
+        <!-- CURRENT STUDENT -->
+        <div class="current-student" id="currentStudentBox" style="display:none;">
+            <span id="currentStudentName"></span>
+        </div>
+
         <!-- COPY CHRONO -->
         <div class="copy-chrono" id="copyChronoBox">
             <div class="copy-chrono-label" id="copyChronoLabel">⏱ Temps copie en cours</div>
@@ -1166,6 +1185,7 @@
         let copyChronoInterval = null;
         let students = [];
         let pendingCopyTime = 0;
+        let currentStudent = null;
         let breakInterval = null;
         let breakSecondsLeft = BREAK_SECONDS;
 
@@ -1319,12 +1339,27 @@
 
         function selectStudent(nom, prenom, classe) {
             document.getElementById('studentModal').classList.remove('show');
-            finalizeCopy({ nom, prenom, classe });
+            currentStudent = { nom, prenom, classe };
+            updateCurrentStudentDisplay();
+            startCopyChrono();
         }
 
         function skipStudentSelection() {
             document.getElementById('studentModal').classList.remove('show');
-            finalizeCopy(null);
+            currentStudent = null;
+            updateCurrentStudentDisplay();
+            startCopyChrono();
+        }
+
+        function updateCurrentStudentDisplay() {
+            const box = document.getElementById('currentStudentBox');
+            const name = document.getElementById('currentStudentName');
+            if (currentStudent && students.length > 0) {
+                box.style.display = 'block';
+                name.textContent = `${currentStudent.prenom} ${currentStudent.nom}`;
+            } else {
+                box.style.display = 'none';
+            }
         }
 
         function enableNoSleep() {
@@ -1473,23 +1508,26 @@
             document.getElementById('setupScreen').classList.add('hidden');
             document.getElementById('mainScreen').classList.add('active');
             document.getElementById('doneBtn').disabled = false;
+            currentStudent = null;
 
             updateUI();
             updateUndoButton();
-            startCopyChrono();
             enableNoSleep();
+
+            // Si élèves chargés, demander qui on corrige d'abord
+            if (students.length > 0) {
+                showStudentModal();
+            } else {
+                updateCurrentStudentDisplay();
+                startCopyChrono();
+            }
         }
 
         function markDone() {
             if (state.doneCopies >= state.totalCopies || state.isPaused) return;
 
             pendingCopyTime = stopCopyChrono();
-
-            if (students.length > 0) {
-                showStudentModal();
-            } else {
-                finalizeCopy(null);
-            }
+            finalizeCopy(currentStudent);
         }
 
         function finalizeCopy(student) {
@@ -1529,6 +1567,16 @@
                 completeSprint();
             } else if (state.doneCopies >= state.totalCopies) {
                 finishSession();
+            } else {
+                startNextCopy();
+            }
+        }
+
+        function startNextCopy() {
+            currentStudent = null;
+            updateCurrentStudentDisplay();
+            if (students.length > 0) {
+                showStudentModal();
             } else {
                 startCopyChrono();
             }
@@ -1594,7 +1642,7 @@
             state.currentSprintTimes = [];
             document.getElementById('currentSprintNum').textContent = state.sprintsCompleted + 1;
             updateSprintDots();
-            startCopyChrono();
+            startNextCopy();
         }
 
         function startBreak() {
@@ -1683,6 +1731,8 @@
             document.getElementById('currentSprintNum').textContent = '1';
             document.getElementById('copyChronoBox').classList.remove('paused');
             document.getElementById('copyChronoLabel').textContent = '⏱ Temps copie en cours';
+            document.getElementById('currentStudentBox').style.display = 'none';
+            currentStudent = null;
 
             state = { totalCopies: 0, doneCopies: 0, sprintsCompleted: 0, currentSprintProgress: 0, startTime: null, endTime: null, copyStartTime: null, elapsedBeforePause: 0, isPaused: false, sprintTimes: [], currentSprintTimes: [], allCopyTimes: [], undoStack: [], sessionActive: false, evalName: '', evalLevel: '', evalClasse: '', evalTheme: '', evalType: '', correctedStudents: [] };
             document.getElementById('totalCopies').value = '';
