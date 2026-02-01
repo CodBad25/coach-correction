@@ -112,6 +112,12 @@
             margin-bottom: 12px;
             object-fit: cover;
             filter: drop-shadow(0 8px 25px rgba(0, 0, 0, 0.4));
+            animation: gentle-bounce 3s ease-in-out infinite;
+        }
+
+        @keyframes gentle-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
         }
 
         /* Details toggle */
