@@ -1025,11 +1025,11 @@
                     <div class="setup-row">
                         <div class="setup-field">
                             <div class="setup-field-label">Évaluation</div>
-                            <input type="text" class="setup-field-input" id="evalName" placeholder="Contrôle fractions">
+                            <input type="text" class="setup-field-input" id="evalName" placeholder="Contrôle fractions" onchange="saveSettings()">
                         </div>
                         <div class="setup-field">
                             <div class="setup-field-label">Classe</div>
-                            <input type="text" class="setup-field-input" id="evalClasse" placeholder="6ème A">
+                            <input type="text" class="setup-field-input" id="evalClasse" placeholder="6ème A" onchange="saveSettings()">
                         </div>
                     </div>
 
@@ -1058,7 +1058,7 @@
                     <div class="setup-row">
                         <div class="setup-field">
                             <div class="setup-field-label">Thème</div>
-                            <input type="text" class="setup-field-input" id="evalTheme" placeholder="Géométrie...">
+                            <input type="text" class="setup-field-input" id="evalTheme" placeholder="Géométrie..." onchange="saveSettings()">
                         </div>
                         <div class="setup-field">
                             <div class="setup-field-label">Élèves</div>
@@ -1298,12 +1298,52 @@
             }
         }
 
+        function saveSettings() {
+            const settings = {
+                evalName: document.getElementById('evalName').value,
+                evalClasse: document.getElementById('evalClasse').value,
+                evalTheme: document.getElementById('evalTheme').value,
+                level: selectedLevel,
+                type: selectedType,
+                students: students
+            };
+            localStorage.setItem('coachCorrection', JSON.stringify(settings));
+        }
+
+        function loadSettings() {
+            try {
+                const saved = localStorage.getItem('coachCorrection');
+                if (!saved) return;
+                const settings = JSON.parse(saved);
+
+                if (settings.evalName) document.getElementById('evalName').value = settings.evalName;
+                if (settings.evalClasse) document.getElementById('evalClasse').value = settings.evalClasse;
+                if (settings.evalTheme) document.getElementById('evalTheme').value = settings.evalTheme;
+
+                if (settings.level) {
+                    selectedLevel = settings.level;
+                    document.querySelectorAll('.setup-chip[data-value="' + settings.level + '"]').forEach(c => c.classList.add('selected'));
+                }
+                if (settings.type) {
+                    selectedType = settings.type;
+                    document.querySelectorAll('.setup-chip[data-value="' + settings.type + '"]').forEach(c => c.classList.add('selected'));
+                }
+
+                if (settings.students && settings.students.length > 0) {
+                    students = settings.students;
+                    document.getElementById('csvUploadBtn').classList.add('loaded');
+                    document.getElementById('csvUploadBtn').innerHTML = `<input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">✅ ${students.length} élèves`;
+                }
+            } catch (e) {}
+        }
+
         function selectChip(chip, type) {
             const container = chip.parentElement;
             container.querySelectorAll('.setup-chip').forEach(c => c.classList.remove('selected'));
             chip.classList.add('selected');
             if (type === 'level') selectedLevel = chip.dataset.value;
             if (type === 'type') selectedType = chip.dataset.value;
+            saveSettings();
         }
 
         function handleCSV(input) {
@@ -1348,6 +1388,7 @@
             document.getElementById('csvUploadBtn').classList.add('loaded');
             document.getElementById('csvUploadBtn').innerHTML = `<input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">✅ ${students.length} élèves`;
             document.getElementById('csvStatus').textContent = '';
+            saveSettings();
         }
 
         function showStudentModal() {
@@ -1943,6 +1984,9 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         }
+
+        // Charger les paramètres sauvegardés au démarrage
+        loadSettings();
     </script>
 </body>
 </html>
