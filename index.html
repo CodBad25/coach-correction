@@ -89,6 +89,89 @@
             border-color: #9b59b6;
         }
 
+        .setup-encouragement {
+            font-size: 0.95rem;
+            color: #2ecc71;
+            margin: -15px 0 20px 0;
+            min-height: 24px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .setup-optional {
+            margin-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 15px;
+        }
+
+        .setup-optional-toggle {
+            font-size: 0.85rem;
+            color: #888;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px;
+        }
+
+        .setup-optional-toggle:hover { color: #aaa; }
+
+        .setup-optional-fields {
+            display: none;
+            margin-top: 15px;
+        }
+
+        .setup-optional-fields.show { display: block; }
+
+        .setup-field {
+            margin-bottom: 12px;
+        }
+
+        .setup-field-label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 5px;
+            text-align: left;
+        }
+
+        .setup-field-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.05);
+            color: white;
+        }
+
+        .setup-field-input:focus {
+            outline: none;
+            border-color: #9b59b6;
+        }
+
+        .setup-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .setup-chip {
+            padding: 8px 14px;
+            font-size: 0.85rem;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            background: transparent;
+            color: #ccc;
+            cursor: pointer;
+        }
+
+        .setup-chip.selected {
+            border-color: #9b59b6;
+            background: rgba(155, 89, 182, 0.3);
+            color: white;
+        }
+
         .start-btn {
             width: 100%;
             padding: 20px;
@@ -698,7 +781,43 @@
 
         <div class="setup-card">
             <p class="setup-label">Combien de copies à corriger ?</p>
-            <input type="number" class="setup-input" id="totalCopies" placeholder="30" min="1" max="200" inputmode="numeric">
+            <input type="number" class="setup-input" id="totalCopies" min="1" max="200" inputmode="numeric" oninput="onCopiesInput()">
+            <p class="setup-encouragement" id="setupEncouragement"></p>
+
+            <div class="setup-optional">
+                <div class="setup-optional-toggle" onclick="toggleOptionalFields()">
+                    <span id="optionalArrow">▶</span> Détails (facultatif)
+                </div>
+                <div class="setup-optional-fields" id="optionalFields">
+                    <div class="setup-field">
+                        <div class="setup-field-label">Nom de l'évaluation</div>
+                        <input type="text" class="setup-field-input" id="evalName" placeholder="ex: Contrôle fractions">
+                    </div>
+                    <div class="setup-field">
+                        <div class="setup-field-label">Niveau</div>
+                        <div class="setup-chips" id="levelChips">
+                            <button type="button" class="setup-chip" data-value="6eme" onclick="selectChip(this, 'level')">6ème</button>
+                            <button type="button" class="setup-chip" data-value="5eme" onclick="selectChip(this, 'level')">5ème</button>
+                            <button type="button" class="setup-chip" data-value="4eme" onclick="selectChip(this, 'level')">4ème</button>
+                            <button type="button" class="setup-chip" data-value="3eme" onclick="selectChip(this, 'level')">3ème</button>
+                        </div>
+                    </div>
+                    <div class="setup-field">
+                        <div class="setup-field-label">Thème (optionnel)</div>
+                        <input type="text" class="setup-field-input" id="evalTheme" placeholder="ex: Géométrie, Calcul littéral...">
+                    </div>
+                    <div class="setup-field">
+                        <div class="setup-field-label">Type</div>
+                        <div class="setup-chips" id="typeChips">
+                            <button type="button" class="setup-chip" data-value="controle" onclick="selectChip(this, 'type')">Contrôle</button>
+                            <button type="button" class="setup-chip" data-value="dm" onclick="selectChip(this, 'type')">DM</button>
+                            <button type="button" class="setup-chip" data-value="interro" onclick="selectChip(this, 'type')">Interro</button>
+                            <button type="button" class="setup-chip" data-value="autre" onclick="selectChip(this, 'type')">Autre</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <button class="start-btn" onclick="startSession()">C'est parti ! 🚀</button>
         </div>
     </div>
@@ -771,9 +890,13 @@
     <div class="finish-screen" id="finishScreen">
         <div class="finish-emoji">🏆</div>
         <h1 class="finish-title">TERMINÉ !</h1>
+        <p class="finish-eval-name" id="finishEvalName" style="color:#9b59b6;font-size:1.1rem;margin-bottom:10px;"></p>
         <p class="finish-stats" id="finishStats"></p>
         <div class="finish-sprints" id="finishSprints"></div>
-        <button class="finish-btn" onclick="newSession()">🎯 Nouvelle session</button>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+            <button class="finish-btn" onclick="exportJSON()" style="background:linear-gradient(135deg,#9b59b6,#8e44ad);">📊 Exporter JSON</button>
+            <button class="finish-btn" onclick="newSession()">🎯 Nouvelle session</button>
+        </div>
     </div>
 
     <!-- SPRINT RECAP MODAL -->
@@ -817,6 +940,11 @@
             sprintsCompleted: 0,
             currentSprintProgress: 0,
             startTime: null,
+            endTime: null,
+            evalName: '',
+            evalLevel: '',
+            evalTheme: '',
+            evalType: '',
             copyStartTime: null,
             elapsedBeforePause: 0,
             isPaused: false,
@@ -851,6 +979,51 @@
             "Chaque effort compte.",
             "Finis ce que tu as commencé."
         ];
+
+        const encouragements = [
+            "Tu vas gérer !",
+            "C'est parti pour la victoire !",
+            "Allez, on y va !",
+            "Tu peux le faire !",
+            "Objectif atteignable !",
+            "Challenge accepté !"
+        ];
+
+        let selectedLevel = '';
+        let selectedType = '';
+
+        function onCopiesInput() {
+            const val = document.getElementById('totalCopies').value;
+            const msgEl = document.getElementById('setupEncouragement');
+            if (val && parseInt(val) > 0) {
+                const n = parseInt(val);
+                const sprints = Math.ceil(n / SPRINT_SIZE);
+                const msg = encouragements[Math.floor(Math.random() * encouragements.length)];
+                msgEl.textContent = `${n} copies = ${sprints} sprint${sprints > 1 ? 's' : ''}. ${msg}`;
+            } else {
+                msgEl.textContent = '';
+            }
+        }
+
+        function toggleOptionalFields() {
+            const fields = document.getElementById('optionalFields');
+            const arrow = document.getElementById('optionalArrow');
+            if (fields.classList.contains('show')) {
+                fields.classList.remove('show');
+                arrow.textContent = '▶';
+            } else {
+                fields.classList.add('show');
+                arrow.textContent = '▼';
+            }
+        }
+
+        function selectChip(chip, type) {
+            const container = chip.parentElement;
+            container.querySelectorAll('.setup-chip').forEach(c => c.classList.remove('selected'));
+            chip.classList.add('selected');
+            if (type === 'level') selectedLevel = chip.dataset.value;
+            if (type === 'type') selectedType = chip.dataset.value;
+        }
 
         function enableNoSleep() {
             document.getElementById('noSleepVideo').play().catch(() => {});
@@ -976,6 +1149,7 @@
                 sprintsCompleted: 0,
                 currentSprintProgress: 0,
                 startTime: new Date(),
+                endTime: null,
                 copyStartTime: null,
                 elapsedBeforePause: 0,
                 isPaused: false,
@@ -983,7 +1157,11 @@
                 currentSprintTimes: [],
                 allCopyTimes: [],
                 undoStack: [],
-                sessionActive: true
+                sessionActive: true,
+                evalName: document.getElementById('evalName').value.trim(),
+                evalLevel: selectedLevel,
+                evalTheme: document.getElementById('evalTheme').value.trim(),
+                evalType: selectedType
             };
 
             document.getElementById('totalCount').textContent = total;
@@ -1123,12 +1301,22 @@
 
         function finishSession() {
             state.sessionActive = false;
+            state.endTime = new Date();
             disableNoSleep();
             clearInterval(copyChronoInterval);
 
-            const duration = state.startTime ? Math.round((new Date() - state.startTime) / 60000) : 0;
+            const duration = state.startTime ? Math.round((state.endTime - state.startTime) / 60000) : 0;
             const totalTime = state.allCopyTimes.reduce((a, b) => a + b, 0);
             const avgTime = state.allCopyTimes.length > 0 ? Math.floor(totalTime / state.allCopyTimes.length) : 0;
+
+            const evalNameEl = document.getElementById('finishEvalName');
+            if (state.evalName) {
+                let label = state.evalName;
+                if (state.evalLevel) label += ` (${state.evalLevel})`;
+                evalNameEl.textContent = label;
+            } else {
+                evalNameEl.textContent = '';
+            }
 
             document.getElementById('finishStats').textContent = `${state.totalCopies} copies en ${duration} min\nTemps moyen : ${formatTime(avgTime)}/copie`;
 
@@ -1173,8 +1361,16 @@
             document.getElementById('copyChronoBox').classList.remove('paused');
             document.getElementById('copyChronoLabel').textContent = '⏱ Temps copie en cours';
 
-            state = { totalCopies: 0, doneCopies: 0, sprintsCompleted: 0, currentSprintProgress: 0, startTime: null, copyStartTime: null, elapsedBeforePause: 0, isPaused: false, sprintTimes: [], currentSprintTimes: [], allCopyTimes: [], undoStack: [], sessionActive: false };
+            state = { totalCopies: 0, doneCopies: 0, sprintsCompleted: 0, currentSprintProgress: 0, startTime: null, endTime: null, copyStartTime: null, elapsedBeforePause: 0, isPaused: false, sprintTimes: [], currentSprintTimes: [], allCopyTimes: [], undoStack: [], sessionActive: false, evalName: '', evalLevel: '', evalTheme: '', evalType: '' };
             document.getElementById('totalCopies').value = '';
+            document.getElementById('evalName').value = '';
+            document.getElementById('evalTheme').value = '';
+            document.getElementById('setupEncouragement').textContent = '';
+            document.querySelectorAll('.setup-chip').forEach(c => c.classList.remove('selected'));
+            selectedLevel = '';
+            selectedType = '';
+            document.getElementById('optionalFields').classList.remove('show');
+            document.getElementById('optionalArrow').textContent = '▶';
         }
 
         function updateUI() {
@@ -1250,6 +1446,54 @@
             state.totalCopies = parsed;
             document.getElementById('totalCount').textContent = parsed;
             updateUI();
+        }
+
+        function exportJSON() {
+            const totalTime = state.allCopyTimes.reduce((a, b) => a + b, 0);
+            const avgTime = state.allCopyTimes.length > 0 ? Math.floor(totalTime / state.allCopyTimes.length) : 0;
+
+            const data = {
+                meta: {
+                    exportDate: new Date().toISOString(),
+                    appVersion: '1.0'
+                },
+                evaluation: {
+                    name: state.evalName || null,
+                    level: state.evalLevel || null,
+                    theme: state.evalTheme || null,
+                    type: state.evalType || null
+                },
+                session: {
+                    startTime: state.startTime ? state.startTime.toISOString() : null,
+                    endTime: state.endTime ? state.endTime.toISOString() : null,
+                    durationMinutes: state.startTime && state.endTime ? Math.round((state.endTime - state.startTime) / 60000) : 0
+                },
+                stats: {
+                    totalCopies: state.totalCopies,
+                    copiesDone: state.doneCopies,
+                    sprintsCompleted: state.sprintsCompleted,
+                    totalTimeSeconds: totalTime,
+                    avgTimePerCopySeconds: avgTime
+                },
+                details: {
+                    allCopyTimes: state.allCopyTimes,
+                    sprintTimes: state.sprintTimes
+                }
+            };
+
+            const filename = state.evalName
+                ? `correction_${state.evalName.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().slice(0,10)}.json`
+                : `correction_${new Date().toISOString().slice(0,10)}.json`;
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
     </script>
 </body>
