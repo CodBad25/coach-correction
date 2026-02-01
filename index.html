@@ -97,13 +97,25 @@
             animation: fadeIn 0.3s ease;
         }
 
+        .setup-step {
+            animation: fadeIn 0.3s ease;
+        }
+
+        .setup-step.hidden { display: none; }
+
+        .setup-step-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #9b59b6;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
         .setup-choice {
             display: flex;
             gap: 10px;
             margin-top: 10px;
         }
-
-        .setup-choice.hidden { display: none; }
 
         .setup-choice-btn {
             flex: 1;
@@ -128,13 +140,40 @@
 
         .setup-choice-btn:active { transform: scale(0.98); }
 
-        .setup-optional-fields {
-            display: none;
-            margin-top: 15px;
-            animation: fadeIn 0.3s ease;
+        .setup-nav {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
         }
 
-        .setup-optional-fields.show { display: block; }
+        .setup-nav-btn {
+            flex: 1;
+            padding: 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            min-height: 50px;
+        }
+
+        .setup-nav-btn.back {
+            background: transparent;
+            border: 2px solid rgba(255,255,255,0.3);
+            color: #aaa;
+        }
+
+        .setup-nav-btn.next {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .setup-nav-btn.start {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        .setup-nav-btn:active { transform: scale(0.98); }
 
         .setup-field {
             margin-bottom: 12px;
@@ -908,60 +947,75 @@
 <body>
     <!-- SETUP SCREEN -->
     <div class="setup-screen" id="setupScreen">
-        <h1 class="setup-title">🎯 Coach de Correction</h1>
+        <h1 class="setup-title">Coach de Correction</h1>
         <p class="setup-subtitle">Transforme la corvée en victoire</p>
 
         <div class="setup-card">
-            <p class="setup-label">Combien de copies à corriger ?</p>
-            <input type="number" class="setup-input" id="totalCopies" min="1" max="200" inputmode="numeric" oninput="onCopiesInput()">
-            <p class="setup-encouragement" id="setupEncouragement"></p>
-
-            <div class="setup-choice" id="setupChoice">
-                <button class="setup-choice-btn details" onclick="showDetails()">📝 Ajouter des détails</button>
-                <button class="setup-choice-btn start" onclick="startSession()">🚀 Commencer</button>
+            <!-- STEP 1: Nombre de copies -->
+            <div class="setup-step" id="step1">
+                <p class="setup-label">Combien de copies à corriger ?</p>
+                <input type="number" class="setup-input" id="totalCopies" min="1" max="200" inputmode="numeric" oninput="onCopiesInput()">
+                <p class="setup-encouragement" id="setupEncouragement"></p>
+                <div class="setup-choice" id="setupChoice">
+                    <button class="setup-choice-btn details" onclick="goToStep(2)">Ajouter des détails</button>
+                    <button class="setup-choice-btn start" onclick="startSession()">Commencer</button>
+                </div>
             </div>
 
-            <div class="setup-optional-fields" id="optionalFields">
-                    <div class="setup-field">
-                        <div class="setup-field-label">Nom de l'évaluation</div>
-                        <input type="text" class="setup-field-input" id="evalName" placeholder="ex: Contrôle fractions">
-                    </div>
-                    <div class="setup-field">
-                        <div class="setup-field-label">Niveau</div>
-                        <div class="setup-chips" id="levelChips">
-                            <button type="button" class="setup-chip" data-value="6eme" onclick="selectChip(this, 'level')">6ème</button>
-                            <button type="button" class="setup-chip" data-value="5eme" onclick="selectChip(this, 'level')">5ème</button>
-                            <button type="button" class="setup-chip" data-value="4eme" onclick="selectChip(this, 'level')">4ème</button>
-                            <button type="button" class="setup-chip" data-value="3eme" onclick="selectChip(this, 'level')">3ème</button>
-                        </div>
-                    </div>
-                    <div class="setup-field">
-                        <div class="setup-field-label">Classe</div>
-                        <input type="text" class="setup-field-input" id="evalClasse" placeholder="ex: 6ème A, 5ème 3...">
-                    </div>
-                    <div class="setup-field">
-                        <div class="setup-field-label">Thème (optionnel)</div>
-                        <input type="text" class="setup-field-input" id="evalTheme" placeholder="ex: Géométrie, Calcul littéral...">
-                    </div>
-                    <div class="setup-field">
-                        <div class="setup-field-label">Type</div>
-                        <div class="setup-chips" id="typeChips">
-                            <button type="button" class="setup-chip" data-value="controle" onclick="selectChip(this, 'type')">Contrôle</button>
-                            <button type="button" class="setup-chip" data-value="dm" onclick="selectChip(this, 'type')">DM</button>
-                            <button type="button" class="setup-chip" data-value="interro" onclick="selectChip(this, 'type')">Interro</button>
-                            <button type="button" class="setup-chip" data-value="autre" onclick="selectChip(this, 'type')">Autre</button>
-                        </div>
-                    </div>
-                    <div class="setup-field">
-                        <div class="setup-field-label">Liste élèves (CSV)</div>
-                        <label class="csv-upload-btn" id="csvUploadBtn">
-                            <input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">
-                            📋 Importer CSV
-                        </label>
-                        <div class="csv-status" id="csvStatus"></div>
+            <!-- STEP 2: Évaluation -->
+            <div class="setup-step hidden" id="step2">
+                <p class="setup-step-title">Évaluation</p>
+                <div class="setup-field">
+                    <div class="setup-field-label">Nom</div>
+                    <input type="text" class="setup-field-input" id="evalName" placeholder="ex: Contrôle fractions">
+                </div>
+                <div class="setup-field">
+                    <div class="setup-field-label">Niveau</div>
+                    <div class="setup-chips">
+                        <button type="button" class="setup-chip" data-value="6eme" onclick="selectChip(this, 'level')">6ème</button>
+                        <button type="button" class="setup-chip" data-value="5eme" onclick="selectChip(this, 'level')">5ème</button>
+                        <button type="button" class="setup-chip" data-value="4eme" onclick="selectChip(this, 'level')">4ème</button>
+                        <button type="button" class="setup-chip" data-value="3eme" onclick="selectChip(this, 'level')">3ème</button>
                     </div>
                 </div>
-                <button class="start-btn" onclick="startSession()">C'est parti ! 🚀</button>
+                <div class="setup-field">
+                    <div class="setup-field-label">Classe</div>
+                    <input type="text" class="setup-field-input" id="evalClasse" placeholder="ex: 6ème A, 5ème 3...">
+                </div>
+                <div class="setup-nav">
+                    <button class="setup-nav-btn back" onclick="goToStep(1)">Retour</button>
+                    <button class="setup-nav-btn next" onclick="goToStep(3)">Suivant</button>
+                </div>
+            </div>
+
+            <!-- STEP 3: Options -->
+            <div class="setup-step hidden" id="step3">
+                <p class="setup-step-title">Options</p>
+                <div class="setup-field">
+                    <div class="setup-field-label">Type</div>
+                    <div class="setup-chips">
+                        <button type="button" class="setup-chip" data-value="controle" onclick="selectChip(this, 'type')">Contrôle</button>
+                        <button type="button" class="setup-chip" data-value="dm" onclick="selectChip(this, 'type')">DM</button>
+                        <button type="button" class="setup-chip" data-value="interro" onclick="selectChip(this, 'type')">Interro</button>
+                        <button type="button" class="setup-chip" data-value="autre" onclick="selectChip(this, 'type')">Autre</button>
+                    </div>
+                </div>
+                <div class="setup-field">
+                    <div class="setup-field-label">Thème (optionnel)</div>
+                    <input type="text" class="setup-field-input" id="evalTheme" placeholder="ex: Géométrie, Calcul...">
+                </div>
+                <div class="setup-field">
+                    <div class="setup-field-label">Liste élèves</div>
+                    <label class="csv-upload-btn" id="csvUploadBtn">
+                        <input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">
+                        Importer CSV
+                    </label>
+                    <div class="csv-status" id="csvStatus"></div>
+                </div>
+                <div class="setup-nav">
+                    <button class="setup-nav-btn back" onclick="goToStep(2)">Retour</button>
+                    <button class="setup-nav-btn start" onclick="startSession()">Commencer</button>
+                </div>
             </div>
         </div>
     </div>
@@ -1164,14 +1218,16 @@
             }
         }
 
-        function showDetails() {
-            const inputVal = document.getElementById('totalCopies').value;
-            if (!inputVal || inputVal.trim() === '') {
-                alert('Entre d\'abord le nombre de copies');
-                return;
+        function goToStep(stepNum) {
+            if (stepNum > 1) {
+                const inputVal = document.getElementById('totalCopies').value;
+                if (!inputVal || inputVal.trim() === '') {
+                    alert('Entre d\'abord le nombre de copies');
+                    return;
+                }
             }
-            document.getElementById('setupChoice').classList.add('hidden');
-            document.getElementById('optionalFields').classList.add('show');
+            document.querySelectorAll('.setup-step').forEach(s => s.classList.add('hidden'));
+            document.getElementById('step' + stepNum).classList.remove('hidden');
         }
 
         function selectChip(chip, type) {
@@ -1641,10 +1697,9 @@
             selectedType = '';
             students = [];
             document.getElementById('csvUploadBtn').classList.remove('loaded');
-            document.getElementById('csvUploadBtn').innerHTML = '<input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">📋 Importer CSV';
+            document.getElementById('csvUploadBtn').innerHTML = '<input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">Importer CSV';
             document.getElementById('csvStatus').textContent = '';
-            document.getElementById('optionalFields').classList.remove('show');
-            document.getElementById('setupChoice').classList.remove('hidden');
+            goToStep(1);
         }
 
         function updateUI() {
