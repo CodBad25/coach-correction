@@ -1258,6 +1258,7 @@
         <div class="student-modal-header">
             <div class="student-modal-title">📋 Copies déjà corrigées</div>
             <div class="student-modal-subtitle">Tape pour cocher/décocher</div>
+            <div class="student-modal-hint">Appui long = retirer (absent)</div>
         </div>
         <input type="text" class="student-search-input" id="preCorrectSearch" placeholder="Rechercher..." oninput="filterPreCorrect()">
         <div class="student-list" id="preCorrectList"></div>
@@ -1522,11 +1523,94 @@
             list.innerHTML = filtered.map((s, i) => {
                 const key = `${s.nom}|${s.prenom}`;
                 const isChecked = tempPreCorrected.some(p => `${p.nom}|${p.prenom}` === key);
-                return `<div class="student-item ${isChecked ? 'pre-done' : ''}" onclick="togglePreCorrect('${s.nom.replace(/'/g, "\\'")}', '${s.prenom.replace(/'/g, "\\'")}', '${(s.classe || '').replace(/'/g, "\\'")}')">
+                return `<div class="student-item ${isChecked ? 'pre-done' : ''}" data-index="${i}">
                     <div class="student-name">${s.prenom} ${s.nom}</div>
                     ${s.classe ? `<div class="student-info">${s.classe}</div>` : ''}
                 </div>`;
             }).join('');
+
+            list.querySelectorAll('.student-item').forEach(item => {
+                let pressTimer = null;
+                let isLongPress = false;
+                let hasMoved = false;
+                let startY = 0;
+                const idx = parseInt(item.dataset.index);
+                const student = filtered[idx];
+
+                const startPress = (e) => {
+                    isLongPress = false;
+                    hasMoved = false;
+                    startY = e.touches ? e.touches[0].clientY : e.clientY;
+                    item.classList.add('pressing');
+                    pressTimer = setTimeout(() => {
+                        if (!hasMoved && student) {
+                            isLongPress = true;
+                            item.classList.remove('pressing');
+                            removeStudentFromList(student, item);
+                        }
+                    }, 600);
+                };
+
+                const endPress = () => {
+                    item.classList.remove('pressing');
+                    if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+                    if (!isLongPress && !hasMoved && student) {
+                        togglePreCorrect(student.nom, student.prenom, student.classe || '');
+                    }
+                };
+
+                const onMove = (e) => {
+                    const currentY = e.touches ? e.touches[0].clientY : e.clientY;
+                    if (Math.abs(currentY - startY) > 10) {
+                        hasMoved = true;
+                        item.classList.remove('pressing');
+                        if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+                    }
+                };
+
+                const cancelPress = () => {
+                    hasMoved = true;
+                    item.classList.remove('pressing');
+                    if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+                };
+
+                item.addEventListener('touchstart', startPress, { passive: true });
+                item.addEventListener('touchend', endPress);
+                item.addEventListener('touchcancel', cancelPress);
+                item.addEventListener('touchmove', onMove, { passive: true });
+                item.addEventListener('mousedown', startPress);
+                item.addEventListener('mouseup', endPress);
+                item.addEventListener('mouseleave', cancelPress);
+            });
+        }
+
+        function removeStudentFromList(student, itemElement) {
+            itemElement.classList.add('removing');
+            if (navigator.vibrate) navigator.vibrate(50);
+
+            setTimeout(() => {
+                students = students.filter(s =>
+                    !(s.nom === student.nom && s.prenom === student.prenom)
+                );
+                // Retirer aussi de la pré-sélection si coché
+                const key = `${student.nom}|${student.prenom}`;
+                tempPreCorrected = tempPreCorrected.filter(p => `${p.nom}|${p.prenom}` !== key);
+
+                // Mettre à jour le bouton CSV
+                const csvBtn = document.getElementById('csvUploadBtn');
+                if (students.length > 0) {
+                    csvBtn.innerHTML = `<input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">✅ ${students.length} élèves`;
+                } else {
+                    csvBtn.classList.remove('loaded');
+                    csvBtn.innerHTML = `<input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">📋 Importer liste`;
+                    document.getElementById('preCorrectBtn').classList.remove('visible');
+                }
+
+                saveSettings();
+                updatePreCorrectCount();
+                const query = document.getElementById('preCorrectSearch').value.trim().toLowerCase();
+                renderPreCorrectList(query);
+            }, 300);
         }
 
         function togglePreCorrect(nom, prenom, classe) {
