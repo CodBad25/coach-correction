@@ -1591,7 +1591,11 @@
             const lines = text.split(/\r?\n/).filter(l => l.trim());
             if (lines.length < 2) return;
 
-            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            // Auto-détection du séparateur (; ou ,)
+            const firstLine = lines[0];
+            const sep = firstLine.includes(';') ? ';' : ',';
+
+            const headers = firstLine.split(sep).map(h => h.trim().toLowerCase());
             const nomIdx = headers.findIndex(h => h === 'nom');
             const prenomIdx = headers.findIndex(h => h === 'prénom' || h === 'prenom');
             const classeIdx = headers.findIndex(h => h === 'classe');
@@ -1603,7 +1607,7 @@
 
             students = [];
             for (let i = 1; i < lines.length; i++) {
-                const cols = lines[i].split(',').map(c => c.trim());
+                const cols = lines[i].split(sep).map(c => c.trim());
                 if (cols[nomIdx] && cols[prenomIdx]) {
                     students.push({
                         nom: cols[nomIdx],
