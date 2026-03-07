@@ -2340,12 +2340,12 @@
         function startNextCopy() {
             currentStudent = null;
             updateCurrentStudentDisplay();
+            // Toujours redémarrer le chrono pour la copie suivante
+            startCopyChrono();
             if (students.length > 0) {
                 // Afficher le bouton "Élève suivant" au lieu d'ouvrir le modal automatiquement
                 document.getElementById('nextStudentBtn').style.display = 'block';
-                document.getElementById('copyChronoBox').style.display = 'none';
-            } else {
-                startCopyChrono();
+                document.getElementById('copyChronoBox').style.display = 'block';
             }
         }
 
