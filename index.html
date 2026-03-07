@@ -352,6 +352,64 @@
             text-decoration: line-through;
         }
 
+        .student-item.pre-done {
+            border-color: #27ae60;
+            background: rgba(39, 174, 96, 0.2);
+        }
+
+        .student-item.pre-done .student-name::before {
+            content: '✓ ';
+            color: #2ecc71;
+        }
+
+        .pre-correct-btn {
+            display: none;
+            width: 100%;
+            padding: 10px;
+            font-size: 0.85rem;
+            border: 2px dashed rgba(39, 174, 96, 0.5);
+            border-radius: 10px;
+            background: transparent;
+            color: #2ecc71;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .pre-correct-btn.visible { display: block; }
+
+        .pre-correct-modal-footer {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .pre-correct-modal-footer button {
+            flex: 1;
+            padding: 15px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .pre-correct-modal-footer .cancel-btn {
+            background: rgba(255,255,255,0.1);
+            color: #888;
+        }
+
+        .pre-correct-modal-footer .confirm-btn {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+        }
+
+        .pre-correct-count {
+            text-align: center;
+            color: #2ecc71;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
         .student-item.pressing {
             background: rgba(231, 76, 60, 0.3);
             border-color: #e74c3c;
@@ -1185,8 +1243,28 @@
                 </div>
             </div>
 
+            <!-- Pre-corrected button -->
+            <button class="pre-correct-btn" id="preCorrectBtn" onclick="showPreCorrectModal()">
+                📋 Déjà corrigées
+            </button>
+
             <!-- Start button -->
             <button class="setup-start-btn" onclick="startSession()">Commencer</button>
+        </div>
+    </div>
+
+    <!-- PRE-CORRECT MODAL -->
+    <div class="student-modal" id="preCorrectModal">
+        <div class="student-modal-header">
+            <div class="student-modal-title">📋 Copies déjà corrigées</div>
+            <div class="student-modal-subtitle">Tape pour cocher/décocher</div>
+        </div>
+        <input type="text" class="student-search-input" id="preCorrectSearch" placeholder="Rechercher..." oninput="filterPreCorrect()">
+        <div class="student-list" id="preCorrectList"></div>
+        <div class="pre-correct-count" id="preCorrectCount"></div>
+        <div class="pre-correct-modal-footer">
+            <button class="cancel-btn" onclick="cancelPreCorrect()">Annuler</button>
+            <button class="confirm-btn" onclick="confirmPreCorrect()">Valider</button>
         </div>
     </div>
 
@@ -1400,6 +1478,7 @@
 
         let selectedLevel = '';
         let selectedType = '';
+        let preCorrectedStudents = [];
 
         function onCopiesInput() {
             const val = document.getElementById('totalCopies').value;
@@ -1411,6 +1490,82 @@
                 msgEl.textContent = `${n} copies = ${sprints} sprint${sprints > 1 ? 's' : ''}. ${msg}`;
             } else {
                 msgEl.textContent = '';
+            }
+        }
+
+        // === PRÉ-CORRECTION : marquer des élèves déjà corrigés ===
+        let tempPreCorrected = [];
+
+        function showPreCorrectModal() {
+            tempPreCorrected = [...preCorrectedStudents];
+            document.getElementById('preCorrectSearch').value = '';
+            document.getElementById('preCorrectModal').classList.add('show');
+            renderPreCorrectList('');
+            updatePreCorrectCount();
+        }
+
+        function filterPreCorrect() {
+            const query = document.getElementById('preCorrectSearch').value.trim().toLowerCase();
+            renderPreCorrectList(query);
+        }
+
+        function renderPreCorrectList(query) {
+            const list = document.getElementById('preCorrectList');
+            let filtered = students;
+            if (query.length >= 2) {
+                filtered = students.filter(s =>
+                    s.nom.toLowerCase().includes(query) ||
+                    s.prenom.toLowerCase().includes(query)
+                );
+            }
+
+            list.innerHTML = filtered.map((s, i) => {
+                const key = `${s.nom}|${s.prenom}`;
+                const isChecked = tempPreCorrected.some(p => `${p.nom}|${p.prenom}` === key);
+                return `<div class="student-item ${isChecked ? 'pre-done' : ''}" onclick="togglePreCorrect('${s.nom.replace(/'/g, "\\'")}', '${s.prenom.replace(/'/g, "\\'")}', '${(s.classe || '').replace(/'/g, "\\'")}')">
+                    <div class="student-name">${s.prenom} ${s.nom}</div>
+                    ${s.classe ? `<div class="student-info">${s.classe}</div>` : ''}
+                </div>`;
+            }).join('');
+        }
+
+        function togglePreCorrect(nom, prenom, classe) {
+            const key = `${nom}|${prenom}`;
+            const idx = tempPreCorrected.findIndex(p => `${p.nom}|${p.prenom}` === key);
+            if (idx >= 0) {
+                tempPreCorrected.splice(idx, 1);
+            } else {
+                tempPreCorrected.push({ nom, prenom, classe });
+            }
+            if (navigator.vibrate) navigator.vibrate(30);
+            const query = document.getElementById('preCorrectSearch').value.trim().toLowerCase();
+            renderPreCorrectList(query);
+            updatePreCorrectCount();
+        }
+
+        function updatePreCorrectCount() {
+            const el = document.getElementById('preCorrectCount');
+            const n = tempPreCorrected.length;
+            el.textContent = n > 0 ? `${n} copie${n > 1 ? 's' : ''} déjà corrigée${n > 1 ? 's' : ''}` : '';
+        }
+
+        function cancelPreCorrect() {
+            document.getElementById('preCorrectModal').classList.remove('show');
+        }
+
+        function confirmPreCorrect() {
+            preCorrectedStudents = [...tempPreCorrected];
+            document.getElementById('preCorrectModal').classList.remove('show');
+            updatePreCorrectButton();
+        }
+
+        function updatePreCorrectButton() {
+            const btn = document.getElementById('preCorrectBtn');
+            const n = preCorrectedStudents.length;
+            if (n > 0) {
+                btn.textContent = `✅ ${n} déjà corrigée${n > 1 ? 's' : ''}`;
+            } else {
+                btn.textContent = '📋 Déjà corrigées';
             }
         }
 
@@ -1563,6 +1718,7 @@
                     students = settings.students;
                     document.getElementById('csvUploadBtn').classList.add('loaded');
                     document.getElementById('csvUploadBtn').innerHTML = `<input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">✅ ${students.length} élèves`;
+                    document.getElementById('preCorrectBtn').classList.add('visible');
                 }
             } catch (e) {}
         }
@@ -1622,6 +1778,9 @@
             document.getElementById('csvUploadBtn').classList.add('loaded');
             document.getElementById('csvUploadBtn').innerHTML = `<input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">✅ ${students.length} élèves`;
             document.getElementById('csvStatus').textContent = '';
+            document.getElementById('preCorrectBtn').classList.add('visible');
+            preCorrectedStudents = [];
+            updatePreCorrectButton();
             saveSettings();
         }
 
@@ -1769,6 +1928,7 @@
                 } else {
                     csvBtn.classList.remove('loaded');
                     csvBtn.innerHTML = `<input type="file" accept=".csv" id="csvFile" onchange="handleCSV(this)" style="display:none;">📋 Importer liste`;
+                    document.getElementById('preCorrectBtn').classList.remove('visible');
                 }
 
                 // Sauvegarder et rafraîchir
@@ -1991,11 +2151,20 @@
                 alert('Entre un nombre valide');
                 return;
             }
+            const preCount = preCorrectedStudents.length;
+            const preCorrected = preCorrectedStudents.map(s => ({
+                nom: s.nom,
+                prenom: s.prenom,
+                classe: s.classe || null,
+                timeSeconds: 0,
+                copyNumber: 0
+            }));
+
             state = {
                 totalCopies: total,
-                doneCopies: 0,
-                sprintsCompleted: 0,
-                currentSprintProgress: 0,
+                doneCopies: preCount,
+                sprintsCompleted: Math.floor(preCount / SPRINT_SIZE),
+                currentSprintProgress: preCount % SPRINT_SIZE,
                 startTime: new Date(),
                 endTime: null,
                 copyStartTime: null,
@@ -2011,13 +2180,14 @@
                 evalClasse: document.getElementById('evalClasse').value.trim(),
                 evalTheme: document.getElementById('evalTheme').value.trim(),
                 evalType: selectedType,
-                correctedStudents: []
+                correctedStudents: preCorrected
             };
 
             document.getElementById('totalCount').textContent = total;
             document.getElementById('setupScreen').classList.add('hidden');
             document.getElementById('mainScreen').classList.add('active');
             document.getElementById('doneBtn').disabled = false;
+            document.getElementById('currentSprintNum').textContent = state.sprintsCompleted + 1;
             currentStudent = null;
 
             updateUI();
@@ -2248,6 +2418,8 @@
             document.getElementById('copyChronoLabel').textContent = '⏱ Temps copie en cours';
             document.getElementById('currentStudentBox').style.display = 'none';
             currentStudent = null;
+            preCorrectedStudents = [];
+            updatePreCorrectButton();
 
             state = { totalCopies: 0, doneCopies: 0, sprintsCompleted: 0, currentSprintProgress: 0, startTime: null, endTime: null, copyStartTime: null, elapsedBeforePause: 0, isPaused: false, sprintTimes: [], currentSprintTimes: [], allCopyTimes: [], undoStack: [], sessionActive: false, evalName: '', evalLevel: '', evalClasse: '', evalTheme: '', evalType: '', correctedStudents: [] };
             document.getElementById('totalCopies').value = '';
